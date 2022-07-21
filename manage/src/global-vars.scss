@@ -1,0 +1,11 @@
+/** 定义全局变量 **/
+$primaryColor: #b80201;
+$tipColor: #2186d2;
+.download.ant-btn{
+  background: $tipColor;
+}
+.table-selected-total{
+  font-size: 16px;
+  line-height: 19px;
+  color: $primaryColor
+}
