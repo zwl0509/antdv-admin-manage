@@ -8,7 +8,7 @@
       <a-row :grabbed="48">
         <a-col :md="12">
           <a-form-item label="不合格类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-            <a-select placeholder="请选择不合格类型" v-decorator="['unqualifiedType',{ rules: [{ required: true, message: '请选择不合格类型!' }] }]">
+            <a-select placeholder="请选择不合格类型" :disabled="type == 'detail'" v-decorator="['unqualifiedType',{ rules: [{ required: true, message: '请选择不合格类型!' }] }]">
               <a-select-option
                 v-for="(item, index) in codeType"
                 :key="index"

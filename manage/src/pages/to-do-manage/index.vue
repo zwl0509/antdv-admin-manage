@@ -7,8 +7,7 @@
       :query-params="searchParams"
       :request-url="requestUrl"
       request-type="POST"
-      :customRow="customRow"
-    >
+      :customRow="customRow">
       <template slot="$search">
         <a-col :md="6" :sm="24">
           <a-form-item label="任务名称">
@@ -32,30 +31,71 @@
         <span>{{ !!text? '是' : '否' }}</span>
       </template>
       <span slot="action" slot-scope="text, record">
-        <template>
+        <template v-if="record.type === '1060-90'">
+          <a @click="$refs.OverhaulTask.show(record,'detail')" v-if="record.isDeal">查看</a>
+          <a @click="$refs.OverhaulTask.show(record,'edit')" v-if="!record.isDeal">领任务</a>
+        </template>
+        <template v-else-if="record.type === '1060-60' || record.type === '1060-70' || record.type === '1060-100' ">
+          <a @click="$refs.TaskManage.show(record,'detail')" v-if="record.isDeal">查看</a>
+          <a @click="$refs.TaskManage.show(record,'edit')" v-if="!record.isDeal">去办理</a>
+        </template>
+        <template v-else-if="record.type === '1060-50' || record.type === '1060-80' || record.type === '1060-110' || record.type === '1060-120'">
+          <a @click="toDoView(record)" v-if="record.isDeal">查看</a>
+          <a @click="toDoView(record)" v-if="!record.isDeal">去办理</a>
+        </template>
+        <template v-else-if="record.auditStatus == '1076-10' || record.auditStatus == '1076-20'">
+          <a @click="customerStageDetail(record)" v-if="record.isDeal">查看</a>
+          <a @click="handleCustomerStage(record)" v-if="!record.isDeal">去办理</a>
+        </template>
+        <template v-else>
           <a @click="$refs.DetailModal.show(record)" v-if="record.isDeal">查看</a>
           <a @click="$refs.ActionModal.show(record)" v-if="!record.isDeal">去办理</a>
         </template>
       </span>
     </list-page>
-    <detail-modal ref="DetailModal" @ok="handleOk()" :codeType="codeType" @getCodeList="getCodeList"></detail-modal>
-    <action-modal ref="ActionModal" @ok="handleOk()" :codeType="codeType" @getCodeList="getCodeList"></action-modal>
+    <action-modal ref="ActionModal" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></action-modal>
+    <detail-modal ref="DetailModal" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></detail-modal>
+    <overhaul-task ref="OverhaulTask" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></overhaul-task>
+    <task-manage ref="TaskManage" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></task-manage>
+    <!-- 验收任务 -->
+    <acceptance-task ref="AcceptanceTask" @ok="handleOk" :actionChildAuth="actionChildAuth"></acceptance-task>
+    <!-- 施工计划图 == 完工管理 -->
+    <gantt-modal ref="GanttModal" @ok="handleOk" :actionChildAuth="actionChildAuth"></gantt-modal>
+    <!-- 停复工管理 -->
+    <resume-work-plan ref="ResumeWorkPlan" @ok="handleOk" :actionChildAuth="actionChildAuth"></resume-work-plan>
+    <!-- 移交设计部 => 上传附件  -->
+    <upload-attach ref="UploadAttach" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></upload-attach>
+    <!-- 移交设计部 => 填写问卷 -->
+    <questionnaire-modal ref="QuestionnaireModal" @ok="handleOk"></questionnaire-modal>
   </div>
 </template>
 
 <script>
-  import moment from 'moment'
-  import labels from '@/utils/labels'
-  import { defaultErrorMessage,dateFormatString } from '@/utils/common'
+  import { defaultErrorMessage } from '@/utils/common'
   import ListPage from '@/components/ListPage'
   import ActionModal from '@/pages/to-do-manage/modules/ActionModal'
   import DetailModal from '@/pages/to-do-manage/modules/DetailModal'
+  import OverhaulTask from '@/pages/to-do-manage/modules/OverhaulTask'
+  import TaskManage from '@/pages/to-do-manage/modules/TaskManage'
+  import AcceptanceTask from '@/pages/customer-manage/acceptance-manage/modules/AcceptanceTask.vue'
+  import ResumeWorkPlan from '@/pages/customer-manage/construction-stage/modules/ResumeWorkPlan'
+  import GanttModal from '@/pages/customer-manage/design-phase/modules/GanttModal'
+  import UploadAttach from '@/pages/customer-manage/first-common-sea-pool/modules/UploadAttach.vue'
+  import QuestionnaireModal from '@/pages/customer-manage/first-common-sea-pool/modules/QuestionnaireModal'
+
   export default {
     name: 'ToDoList',
     components: {
+      TaskManage,
+      OverhaulTask,
       DetailModal,
       ListPage,
-      ActionModal
+      ActionModal,
+      AcceptanceTask,
+      ResumeWorkPlan,
+      GanttModal,
+      UploadAttach,
+      QuestionnaireModal
     },
     data () {
       return {
@@ -122,23 +162,17 @@
           statusList: []
         },
         id:'',
-        actionAuth: [],
+        actionChildAuth: [],
         isView: false
       }
     },
     created () {
-      this.$store.dispatch('GetActionAuth').then(res => {
-        const arr = []
-        res.forEach(item => {
-          arr.push(item.key)
-        })
-        this.actionAuth = arr
-      })
+      // const key = 'ConstructionStage'
     },
     methods: {
       getCodeList() {
         const params = {
-          typeList: ['1003','1010','1022','1023','1025','1026','1027','1028','1029','1030','1031','1036','1037','1038','1044','1062']
+          typeList: ['1003','1010','1022','1023','1025','1026','1027','1028','1029','1030','1031','1036','1037','1038','1044','1062','1071','1072']
         }
         this.$getCodesList(params, res => {
           this.codeType.genderType = res['1003'] || [] // 性别
@@ -156,6 +190,8 @@
           this.codeType.recordType = res['1038'] || []  // 记录类型
           this.codeType.infoSourceType = res['1044'] || []  // 信息来源
           this.codeType.applyType = res['1062'] || []  // 信息来源
+          this.codeType.serviceType = res['1071'] || [] // 客服类型
+          this.codeType.complaintType = res['1072'] || [] // 投诉类别
           this.codeType.statusList = res['1010'] || [] 
           this.codeType.statusList.forEach((item, index)=>{ // 审核状态
           if(item.value == '1010-10' || item.value == '1010-40') {
@@ -167,17 +203,108 @@
       searchParams () {
         return { ...this.queryParam }
       },
-      resetSearchForm () {
-        this.queryParam = {
+      toDoView(record) {
+        if(record.type == '1060-80'){
+          // 验收任务
+          const arr = [this.getMenuChildAuth('AcceptanceManage'),!record.isView && this.updataStatus(record)]
+          Promise.all(arr).then(res=> {
+            this.$refs.AcceptanceTask.show(record.customerId)
+          })
+        }else if (record.type == '1060-120'){ 
+          // 停复工管理
+          const arr = [this.getMenuChildAuth('ConstructionStage'),!record.isView && this.updataStatus(record)]
+          const params = { 
+            id: record.customerId,
+            constructionPlanId: record.customerPlanId,
+          }
+          Promise.all(arr).then(res=> {
+            this.$refs.ResumeWorkPlan.show(params)
+          })
+        }else if (record.type == '1060-50' || record.type == '1060-110') {
+          // 查看施工计划
+          const arr = [this.getMenuChildAuth('ConstructionStage'),!record.isView && this.updataStatus(record)]
+          const params = {
+            id :record.customerId
+          }
+           Promise.all(arr).then(res=> {
+            this.$refs.GanttModal.show(params)
+          })
         }
+      },
+      // 客户阶段处理
+      handleCustomerStage(record) {
+        if (record.auditStatus == '1076-10'){
+          const params = { 
+            id: record.applyRelationId,
+            applicationId: record.applyId,
+          }
+          !record.isView && this.updataStatus(record)
+          this.$refs.UploadAttach.show(params, true)
+        }else if (record.auditStatus == '1076-20') {
+          const params = { 
+            id: record.applyRelationId,
+            applicationId: record.applyId,
+          }
+          let surveyType  = ''
+          if (record.customerType == '1033-40')  surveyType = '1078-10'
+          if (record.customerType == '1033-50')  surveyType = '1078-30'
+          if (record.customerType == '1033-55')  surveyType = '1078-40'
+          !record.isView && this.updataStatus(record)
+          this.$refs.QuestionnaireModal.show(params, surveyType)
+        }
+      },
+      // 客户阶段查看
+      customerStageDetail(record) {
+        if (record.auditStatus == '1076-10'){
+          const params = { 
+            id: record.applyRelationId,
+            applicationId: record.applyId,
+          }
+          !record.isView && this.updataStatus(record)
+          this.$refs.UploadAttach.detail(params, true)
+        }else if (record.auditStatus == '1076-20') {
+          !record.isView && this.updataStatus(record)
+          this.getAuditDetail(record.applyId)
+        }
+      },
+      // 获取审核详情信息
+      getAuditDetail(applicationId) {
+        this.confirmLoading = true
+        this.$get({
+          url: this.$api.customInfo.customerAuditInfo.getDetail,
+          params: { applicationId}
+        }).then(res=> {
+          const data = { ...res }
+          this.$refs.QuestionnaireModal.detail(data.customerSurveyInfo)
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
+      },
+      // 更新状态
+      updataStatus(record) {
+        this.$get({
+          url: this.$api.toDealWith.isView,
+          params: { id: record.id },
+          needResponse: true
+        }).then(res => { this.handleOk() })
+      },
+      // 获取菜单权限
+      getMenuChildAuth(key) {
+        this.$store.dispatch('GetIdByKey', key).then(res=> {
+          const arr = []
+          res.forEach(item => {
+            arr.push(item.key.split('.')[1])
+          })
+          this.actionChildAuth = arr
+        }).catch(err=> { defaultErrorMessage(err, '获取页面权限失败')})
+      },
+      resetSearchForm () {
+        this.queryParam = { }
       },
       customRow (row) {
         return {
           class: row.isView === true ? '' : 'test',
           style: { backgroundColor : row.isView === true ? 'unset' : '#e0e0e0'},
         }
-      },
-      handleSub (record) {
       },
       handleOk () {
         this.$refs.listPage.refresh()
@@ -189,22 +316,3 @@
     }
   }
 </script>
-<style lang="scss" scoped>
-  /*::v-deep .ant-spin-container{*/
-  /*  width: 100%;*/
-  /*  height: 100%;*/
-  /*  padding: 15px 30px;*/
-  /*}*/
-  /*/deep/ .ant-table-tbody{*/
-  /*  > tr:hover:not(.ant-table-expanded-row) > td,.ant-table-row-hover,.ant-table-row-hover>td{*/
-  /*    background: #f1f3f4 !important;*/
-  /*  }*/
-  /*}*/
-  /*/deep/ .ant-table-tbody{*/
-  /*  > tr:hover:not(.ant-table-expanded-row) > td,.ant-table-row-hover,.ant-table-row-hover>td,.test-hover,.test-hover>td{*/
-  /*    background: #f1f3f4 !important;*/
-  /*  }*/
-  /*}*/
-
-
-</style>

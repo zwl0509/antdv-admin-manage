@@ -43,7 +43,7 @@
                 placeholder="请输入客户提成"
                 autocomplete="off"
                 :disabled="modal_type == 'detail'"
-                v-decorator="['customerCommission', { rules: [{ validator: (r,v,f) => regularCheck2(r, v, f, 'number', [5,2], '客户提成校验失败') }] }]"/>
+                v-decorator="['customerCommission', { rules: [{ validator: (r,v,f) => regularCheck2(r, v, f, 'number', [6,4], '客户提成校验失败') }] }]"/>
             </a-form-item>
           </a-col>
         </a-row>

@@ -1,0 +1,89 @@
+uni-page-body {
+  color: #333;
+  font-size: 24rpx;
+  font-family: PingFang-SC-Medium;
+}
+uni-textarea {
+  height: 160rpx;
+}
+.word-wrap {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.two-row-ellipsis {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  line-clamp: 2;
+  -webkit-box-orient: vertical;
+}
+.fl-cc {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fl-cu {
+  display: flex;
+  align-items: center;
+}
+.fl-su {
+  display: flex;
+  align-items: flex-start;
+}
+.fl-cc-col {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.fl-csa {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.fl-cs {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.fl-ce {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.fl-csb {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fl-ssb {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.fl-esb {
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+.fl-row{
+  flex-direction: row;
+}
+.fl-wrap{
+  flex-wrap: wrap;
+}
+.fl-col{
+  flex-direction: column;
+}
+.fl-1{
+  flex: 1;
+}

@@ -1,0 +1,768 @@
+<template>
+	<view class="detail">
+		<u-navbar title="详情" :border='false' :titleBold='true' :border-bottom="false" class="navbar"
+			title-color='#333333'>
+			<view class="slot-wrap" slot="right" v-if="detail.dispatchInfos&&type=='1071-30'">
+				<view class="" style="font-size: 26rpx;color: #333333;padding-right: 40rpx;" @click="generateCanCode"
+					v-if="!detail.dispatchInfos[0].customerSurveyInfo">
+					<image src="/static/image/workbench/construction-manage/cancode.png" mode=""
+						style="width: 48rpx;height: 48rpx;"></image>
+				</view>
+<!-- 				<view class="" style="font-size: 26rpx;color: #333333;padding-right: 40rpx;" @click="toquestion" v-else>
+					查看问卷
+				</view> -->
+			</view>
+		</u-navbar>
+		<view class="customer-info">
+			<view class="customer-info-user">
+				<view class="userinfo">
+					<image src="/static/image/workbench/customer-manage/tx.png" mode="" class="avatar"></image>
+					<view class="userinfo-r">
+						<view class="userinfo-r-t">
+							<text>{{detail.customerName}}</text>
+							<text>{{detail.mobileNumber}}</text>
+						</view>
+						<view class="userinfo-r-b">
+							<image src="/static/image/workbench/product-dispatch/address.png" mode=""></image>
+							<text>{{detail.finalAddress}}</text>
+						</view>
+					</view>
+				</view>
+				<view class="status" v-if="dispatchInfosLength">
+					{{detail.dispatchInfos[0].statusName}}
+				</view>
+			</view>
+			<view class="customer-info-content">
+				<view class="title">
+					<view class="title-l">
+						<image src="/static/image/workbench/customer-complaints/complaint.png" mode=""></image>
+						<text>
+							{{detail.recordSourceName}}
+						</text>
+					</view>
+					<view class="title-r">
+						{{detail.recordTime}}
+					</view>
+				</view>
+				<view class="content" v-if="dispatchInfosLength">
+					{{openShow ? detail.dispatchInfos[0].question : getLength(detail.dispatchInfos[0].question)}}
+					<view class="open" @click="openShow=true" v-if="!openShow">
+						展开
+					</view>
+				</view>
+				<!-- 				<view class="imgs" v-if="dispatchInfosLength">
+					<image :src="img" mode="" v-for="(img,index2) in detail.dispatchInfos[0].attachInfos" :key="index2">
+					</image>
+				</view> -->
+			</view>
+		</view>
+		<view class="dispatch-info">
+			<view class="">
+				<text class="dispatch-l">所属门店</text>
+				<text class="dispatch-r">{{detail.storeName ? detail.storeName :'暂无'}}</text>
+			</view>
+			<!-- 			<view class="">
+				<text class="dispatch-l">项目经理</text>
+				<text class="dispatch-r">张起灵</text>
+			</view> -->
+			<view class="">
+				<text class="dispatch-l">设计师</text>
+				<text class="dispatch-r">{{detail.designer ? detail.designer : '暂无'}}</text>
+			</view>
+		</view>
+		<view class="handle-info">
+			<view class="handle-info-y">
+				<view class="handle-info-y-l">
+					处理人
+				</view>
+				<view class="handle-info-y-r" v-if="dispatchInfosLength">
+					<view class="handle-info-y-r-t">
+						<text v-for="(hander,index3) in detail.dispatchInfos[0].handlers"
+							:key="index3">{{index3==0 ? hander.employeeName :'、'+ hander.employeeName}}</text>
+					</view>
+					<image src="/static/image/workbench/customer-complaints/right.png" mode=""></image>
+				</view>
+			</view>
+			<view class="handle-info-y">
+				<view class="handle-info-y-l">
+					处理时间
+				</view>
+				<view class="handle-info-y-r" @click="showSelect('nowTime')">
+					<input type="text" v-model="nowTime" placeholder="请选择时间" :disabled="true"
+						placeholder-style="color:#D0D0D0;" />
+					<image src="/static/image/workbench/customer-complaints/right.png" mode=""></image>
+				</view>
+			</view>
+			<view class="">
+				<view class="handle-info-y" style="border: none;height: auto;padding-top: 32rpx;padding-bottom: 20rpx;">
+					<view class="handle-info-y-l">
+						抄送人
+					</view>
+					<view class="handle-info-y-r" v-if="dispatchInfosLength">
+						<view class="handle-info-y-r-t">
+							<text v-for="(reminder,index4) in detail.dispatchInfos[0].reminders"
+								:key="index4">{{index4==0 ? reminder.employeeName :'、'+ reminder.employeeName}}</text>
+						</view>
+						<image src="/static/image/workbench/customer-complaints/right.png" mode=""></image>
+					</view>
+				</view>
+				<view class="feedbackContent">
+					<textarea v-model="feedbackContent" :placeholder="feedbackPlaceholder" :maxlength="200"
+						placeholder-style="color: #B2B2B2;"></textarea>
+					<view style="height: 50rpx;">
+						<view class="contentNum">
+							<text
+								:style="{'color': feedbackContent.length?'#B2B2B2':'#F43D1B'}">{{ feedbackContent.length }}</text>/200
+						</view>
+					</view>
+					<u-upload ref="uUpload" width="196rpx" height="196rpx" :action="action"
+						:formData="{attachType: '1009-80'}" :header="header" name="files" :auto-upload="false"
+						max-count="3" :custom-btn="true" @on-uploaded="onUpload" @on-list-change="listChange">
+						<view slot="addBtn">
+							<image src="/static/image/mine/account/add.png" style="width: 196rpx; height: 196rpx;">
+							</image>
+						</view>
+					</u-upload>
+				</view>
+			</view>
+			<view class="handle-info-y" style="border: none;">
+				<view class="handle-info-y-l">
+					下次处理时间
+				</view>
+				<view class="handle-info-y-r" @click="showSelect('nextTime')">
+					<input type="text" value="" placeholder="请选择时间" v-model="nextTime" :disabled="true"
+						placeholder-style="color:#D0D0D0;" />
+					<image src="/static/image/workbench/customer-complaints/time.png" mode=""
+						style="width: 26rpx;height: 28rpx;margin-left: 16rpx;"></image>
+				</view>
+			</view>
+		</view>
+		<u-picker mode="time" v-model="select" :params="params" @confirm="selectTime" start-year="2022"></u-picker>
+		<view class="history">
+			<view class="handle-info-y" style="border: none;" @click="toRepair">
+				<view class="handle-info-y-l">
+					历史记录
+				</view>
+				<view class="handle-info-y-r">
+					<image src="/static/image/workbench/customer-complaints/right.png" mode=""></image>
+				</view>
+			</view>
+		</view>
+		<u-popup v-model="cancodeShow" mode='center'>
+			<view>
+				<image :src="cancodePath" mode="" style="width: 500rpx;height: 500rpx;"></image>
+			</view>
+		</u-popup>
+		<view class="" v-if="dispatchInfosLength&&role==1">
+			<view class="btns" v-if="detail.dispatchInfos[0].status=='1074-10'">
+				<!-- 			<view class="btn-y">
+				处理中
+			</view> -->
+				<view class="btn-e" @click="finish('1074-20')" v-if="isComplete">
+					完成
+				</view>
+				<view class="btn-e" @click="finish('1074-30')" v-if="isReject">
+					驳回
+				</view>
+			</view>
+		</view>
+
+	</view>
+</template>
+
+<script>
+	// 以下路径需根据项目实际情况填写
+	import {
+		pathToBase64,
+		base64ToPath
+	} from '@/js_sdk/mmmm-image-tools/index.js'
+	import variable from '../../../common/service/variable.js'
+	export default {
+		data() {
+			return {
+				nowTime: '',
+				nextTime: '',
+				params: {
+					year: true,
+					month: true,
+					day: true,
+					hour: true,
+					minute: true,
+					second: true
+				},
+				select: false,
+				timeName: '',
+				feedbackPlaceholder: '填写您的回复信息',
+				feedbackContent: '',
+				openShow: false,
+				maxWords: 0,
+				// 上传图片服务器地址
+				action: '',
+				header: {
+					'X-Auth-Token': ''
+				},
+				csComplaintRecordId: '',
+				id: '',
+				detail: {},
+				reminders: [],
+				handlers: [],
+				role: '',
+				status: '',
+				dispatchInfosLength: 0,
+				isComplete: false,
+				isReject: false,
+				type: '',
+				cancodePath: '', //二维码路径
+				cancodeShow: false,
+			}
+		},
+		onLoad(options) {
+			this.role += options.role
+			this.csComplaintRecordId = options.csComplaintRecordId
+			this.id = options.id
+			this.customerId = options.customerId
+			this.type = options.type
+			this.header['X-Auth-Token'] = this.vuex_token
+			uni.getSystemInfo({
+				success: (res) => {
+					// 可使用窗口高度，将px转换rpx
+					this.phoneWidth = (res.windowWidth * (750 / res.windowWidth))
+					this.maxWords = this.phoneWidth / 28 * 2 - 5
+					// console.log(this.maxWords, this.phoneWidth)
+				}
+			})
+			if (options.agencyId) {
+				this.toDealWithIsView(options.agencyId)
+			}
+			// this.getLength(this.contentText)
+			this.getDetail()
+			this.getJurisdiction()
+		},
+		methods: {
+			//查看问卷
+			toquestion() {
+				uni.navigateTo({
+					url: '/pages/workbench/customer-manage/question-detail?qList=' + JSON.stringify(this.detail.dispatchInfos[0]
+						.customerSurveyInfo
+						.surveyQuestionVOList) + '&createdTime=' + this.detail.dispatchInfos[0].createdTime
+				})
+			},
+			//生成二维码
+			generateCanCode() {
+				this.$get({
+					url: this.api.CustomerSurveyInfo.getSurveyQrCode,
+					data: {
+						customerId: this.customerId,
+						relationId: this.detail.dispatchInfos[0].id,
+						surveyType: '1078-20'
+					}
+				}).then(res => {
+					base64ToPath(res)
+						.then(path => {
+							this.cancodeShow = true
+							this.cancodePath = path
+						})
+						.catch(error => {
+							console.error(error)
+						})
+				})
+			},
+			//base64转换成图片
+			base64_decode(base64str, file) {
+				var fs = require('fs');
+				var bitmap = new Buffer(base64str, 'base64');
+				fs.writeFileSync(file, bitmap);
+			},
+			//待办已读
+			toDealWithIsView(id) {
+				this.$get({
+					url: this.api.toDealWith.toDealWithIsView,
+					data: {
+						id: id
+					}
+				}).then(res => {
+
+				})
+			},
+			//获取按钮权限
+			getJurisdiction() {
+				let targetIds = []
+				this.listBtns = []
+				this.singleBtns = []
+				targetIds.push(this.vuex_user.id)
+				this.vuex_user.roles.forEach(item => {
+					targetIds.push(item.id)
+				})
+				this.$post({
+					url: this.api.AuthUser.getAuthActionByTargetIds,
+					data: {
+						backstage: 0,
+						sitemapId: uni.getStorageSync('sitemapId'),
+						targetIds: targetIds
+					}
+				}).then(res => {
+					res.forEach(item => {
+						if (item.key.indexOf('Complete') != -1) {
+							this.isComplete = true
+						}
+						if (item.key.indexOf('Reject') != -1) {
+							this.isReject = true
+						}
+					})
+				})
+			},
+			toRepair() {
+				uni.navigateTo({
+					url: 'repair-record?customerId=' + this.customerId + '&type=' + this.type
+				})
+			},
+			toHistory() {
+				uni.navigateTo({
+					url: 'history-record?detail=' + JSON.stringify(this.detail)
+				})
+			},
+			listChange(list, name) {
+				this.image = list.length
+			},
+			finish(status) {
+				if (this.nowTime == '') {
+					this.$Toast('请选择处理时间')
+					return
+				}
+				if (this.feedbackContent == '') {
+					this.$Toast('请输入回复内容')
+					return
+				}
+				this.status = status
+				this.$refs.uUpload.upload();
+			},
+			onUpload(lists, name) {
+				let files = []
+				let attaches = []
+				// console.log(lists)
+				files = this.$refs.uUpload.lists.filter(val => {
+					return val.progress == 100;
+				})
+				files.forEach(item => {
+					attaches.push(item.response.result[0].id)
+				})
+				this.saveData(attaches)
+			},
+			saveData(attachIds) {
+				this.$post({
+					url: this.api.CustomerServiceInfo.dispatch,
+					data: {
+						attachIds: attachIds,
+						csComplaintRecordId: this.detail.id,
+						dealTime: this.nowTime,
+						handlerId: this.vuex_user.id,
+						nextDealTime: this.nextTime,
+						status: this.status,
+						reminders: this.reminders,
+						id: this.detail.dispatchInfos[0].id,
+						question: this.detail.dispatchInfos[0].question,
+						replayContent: this.feedbackContent
+					}
+				}).then(res => {
+					this.$Toast('操作成功')
+					setTimeout(function() {
+						uni.navigateBack({
+
+						})
+					}, 1000)
+				})
+			},
+			showSelect(e) {
+				this.timeName = e
+				this.select = true
+			},
+			//获取详情
+			getDetail() {
+				this.$get({
+					url: this.api.CustomerServiceInfo.getDetail,
+					data: {
+						csComplaintRecordId: this.csComplaintRecordId,
+						id: this.id
+					}
+				}).then(res => {
+					this.detail = res
+					this.dispatchInfosLength = res.dispatchInfos.length
+					if (res.dispatchInfos.length) {
+						res.dispatchInfos[0].handlers.forEach(item => {
+							this.handlers.push(item.employeeId)
+						})
+						res.dispatchInfos[0].reminders.forEach(item => {
+							this.reminders.push(item.employeeId)
+						})
+					}
+
+					this.action = variable.apiServer + this.api.common.upload + "?customerId=" + res
+						.customerId // variable.apiServer + this.$api.common.upload
+				})
+			},
+			//获取展开前字符
+			getLength(string = '') {
+				if (!string || string.length < this.maxWords) {
+					this.openShow = true
+					return
+				}
+				let length = 0
+				string = string.toString().split('')
+				// const reg = /0xE001,0xE05A]|[0xE101,0xE15A]|[0xE201,0xE253]|[0xE301,0xE34D]|[0xE401,0xE44C]|[0xE501,0xE537]/
+				for (const str of string) {
+					length += /[\u4e00-\u9fa5]/.test(str) ? 2 : 1
+				}
+				let a = string.slice(0, this.maxWords)
+				let b = ''
+				a.forEach(item => {
+					b = b + item
+				})
+				return b + '...'
+			},
+			selectTime(e) {
+				if (this.timeName == 'nowTime') {
+					this[this.timeName] = e.year + '-' + e.month + '-' + e.day + ' ' + e.hour + ':' + e.minute + ':' + e
+						.second
+				} else {
+					let isNow = this.dateTimeStr(e)
+					if (isNow) {
+						this[this.timeName] = e.year + '-' + e.month + '-' + e.day + ' ' + e.hour + ':' + e.minute + ':' +
+							e.second
+					} else {
+						this.$Toast('请选择大于等于当前时间')
+					}
+				}
+
+			},
+			//获取当前时间
+			dateTimeStr(str) {
+				var date = new Date(),
+					year = date.getFullYear(), //年
+					month = date.getMonth() + 1, //月
+					day = date.getDate(), //日
+					hour = date.getHours() < 10 ? "0" + date.getHours() : date.getHours(), //时
+					minute = date.getMinutes() < 10 ? date.getMinutes() : date.getMinutes(), //分
+					second = date.getSeconds() < 10 ? date.getSeconds() : date.getSeconds(); //秒
+				month >= 1 && month <= 9 ? (month = "0" + month) : "";
+				day >= 0 && day <= 9 ? (day = "0" + day) : "";
+				hour >= 0 && hour <= 9 ? hour : "";
+				minute >= 0 && minute <= 9 ? (minute = "0" + minute) : "";
+				second >= 0 && second <= 9 ? (second = "0" + second) : "";
+				if (str.year > year) {
+					return true
+				} else if (str.year == year) {
+					if (str.month > month) {
+						return true
+					} else if (str.month == month) {
+						if (str.day > day) {
+							return true
+						} else if (str.day == day) {
+							if (str.hour > hour) {
+								return true
+							} else if (str.hour == hour) {
+								if (str.minute >= minute) {
+									return true
+									// if(str.second >= second){
+									// 	return true
+									// }else{
+									// 	return false
+									// }
+								} else {
+									return false
+								}
+							} else {
+								return false
+							}
+						} else {
+							return false
+						}
+					} else {
+						return false
+					}
+				} else {
+					return false
+				}
+			},
+		}
+	}
+</script>
+<style>
+	page {
+		background-color: #F8F8FB;
+	}
+</style>
+<style scoped lang="less">
+	.detail {
+		padding-top: 20rpx;
+		padding-bottom: 160rpx;
+
+		.feedbackContent {
+			background: #F8F8F8;
+			border-radius: 16rpx;
+			padding: 24rpx 20rpx;
+
+			textarea {
+				width: 100%;
+				height: 260rpx;
+				font-size: 28rpx;
+				font-weight: 400;
+				line-height: 40rpx;
+			}
+
+			.contentNum {
+				font-size: 20rpx;
+				font-weight: 400;
+				line-height: 28rpx;
+				color: #B2B2B2;
+				float: right;
+				margin-top: 10rpx;
+			}
+
+			.uUpload {
+				margin-top: 40rpx;
+				// image {
+				// 	width: 196rpx;
+				// 	height: 196rpx;
+				// }
+			}
+		}
+
+		.handle-info-y {
+			width: 100%;
+			height: 112rpx;
+			display: flex;
+			align-items: center;
+			justify-content: space-between;
+			border-bottom: 1rpx solid #F0F0F0;
+
+			.handle-info-y-l {
+				font-size: 32rpx;
+				color: #333333;
+				font-weight: bold;
+				flex-shrink: 0;
+			}
+
+			.handle-info-y-r {
+				font-size: 32rpx;
+				color: #333333;
+				display: flex;
+				align-items: center;
+
+				.handle-info-y-r-t {
+					display: flex;
+					align-items: center;
+					flex-wrap: wrap;
+					justify-content: flex-end;
+
+					text {
+						white-space: nowrap;
+					}
+				}
+
+				input {
+					font-size: 32rpx;
+					text-align: right;
+				}
+
+				image {
+					width: 14rpx;
+					height: 27rpx;
+					margin-left: 28rpx;
+				}
+			}
+		}
+
+		.customer-info {
+			width: 100%;
+			background-color: #FFFFFF;
+			padding: 24rpx 30rpx 32rpx 24rpx;
+
+			.customer-info-user {
+				width: 100%;
+				display: flex;
+				align-items: flex-start;
+				justify-content: space-between;
+				margin-bottom: 40rpx;
+
+				.userinfo {
+					display: flex;
+					align-items: center;
+
+					image {
+						width: 76rpx;
+						height: 76rpx;
+						margin-right: 20rpx;
+					}
+
+					.userinfo-r {
+						height: 76rpx;
+						display: flex;
+						flex-direction: column;
+
+						.userinfo-r-t {
+							color: #333333;
+							font-size: 28rpx;
+						}
+
+						.userinfo-r-b {
+							display: flex;
+							align-items: center;
+							font-size: 24rpx;
+							color: #999999;
+
+							image {
+								width: 18rpx;
+								height: 24rpx;
+								margin-right: 12rpx;
+							}
+						}
+					}
+				}
+
+				.status {
+					font-size: 28rpx;
+					color: #B80201;
+
+				}
+			}
+
+			.customer-info-content {
+				.title {
+					display: flex;
+					align-items: center;
+					justify-content: space-between;
+					margin-bottom: 16rpx;
+
+					.title-l {
+						display: flex;
+						color: #333333;
+						font-size: 32rpx;
+						font-weight: bold;
+						align-items: center;
+
+						image {
+							width: 28rpx;
+							height: 32rpx;
+							margin-right: 12rpx;
+						}
+					}
+
+					.title-r {
+						color: #999999;
+						font-size: 24rpx;
+					}
+				}
+
+				.content {
+					font-size: 28rpx;
+					font-weight: 500;
+					line-height: 40rpx;
+					color: #333333;
+					margin-bottom: 24rpx;
+					position: relative;
+
+					.open {
+						position: absolute;
+						bottom: 0rpx;
+						right: 0rpx;
+						color: #333333;
+						font-size: 28rpx;
+						font-weight: bold;
+					}
+				}
+
+				.imgs {
+					display: flex;
+					align-items: center;
+					flex-wrap: wrap;
+
+					image {
+						height: 222rpx;
+						width: 222rpx;
+						margin-right: 12rpx;
+						border-radius: 8rpx;
+
+						&:nth-child(3n) {
+							margin: 0;
+						}
+					}
+				}
+			}
+		}
+
+		.dispatch-info {
+			height: 216rpx;
+			background-color: #FFFFFF;
+			display: flex;
+			flex-direction: column;
+			justify-content: space-evenly;
+			margin-top: 20rpx;
+			padding: 0 30rpx;
+
+			view {
+				display: flex;
+				align-items: center;
+				justify-content: space-between;
+			}
+
+			.dispatch-l {
+				color: #666666;
+				font-size: 28rpx;
+			}
+
+			.dispatch-r {
+				font-size: 28rpx;
+				color: #333333;
+			}
+		}
+
+		.handle-info {
+			background-color: #FFFFFF;
+			padding: 0 30rpx;
+			margin-top: 20rpx;
+		}
+
+		.history {
+			margin-top: 20rpx;
+			background-color: #FFFFFF;
+			padding: 0 30rpx;
+		}
+
+		.btns {
+			width: 100%;
+			height: 98rpx;
+			display: flex;
+			align-items: center;
+			flex-direction: row-reverse;
+			padding: 0 30rpx;
+			background-color: #FFFFFF;
+			position: fixed;
+			bottom: 0rpx;
+			left: 0rpx;
+
+			.btn-y {
+				width: 168rpx;
+				height: 72rpx;
+				border-radius: 36rpx;
+				line-height: 72rpx;
+				text-align: center;
+				font-size: 28rpx;
+				color: #FFFFFF;
+				background: linear-gradient(to right, #D80100, #B80201);
+				margin-left: 20rpx;
+			}
+
+			.btn-e {
+				width: 168rpx;
+				height: 72rpx;
+				border-radius: 36rpx;
+				line-height: 72rpx;
+				text-align: center;
+				font-size: 28rpx;
+				color: #333333;
+				border: 2rpx solid #C0C0C0;
+				margin-left: 20rpx;
+			}
+		}
+	}
+</style>

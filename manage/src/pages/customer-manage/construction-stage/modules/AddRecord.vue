@@ -1,5 +1,5 @@
 <template>
-  <!-- 新增巡检 -->
+  <!-- 新增日常巡检 -->
   <a-modal
     :title="modal_title"
     :width="1000"
@@ -20,17 +20,6 @@
                 :maxLength="32"
                 :disabled="modal_type == 'detail'"
                 v-decorator="['title', {rules: [{required: true, message: '请输入巡检名称'}]}]"/>
-            </a-form-item>
-          </a-col>
-          <a-col :md="12" :xs="24">
-            <a-form-item label="巡检类型" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-select placeholder="请选择巡检类型" v-decorator="['type',{ rules: [{ required: true, message: '请选择巡检类型!' }] }]">
-                <a-select-option
-                  v-for="(item, index) in patrolType"
-                  :key="index"
-                  :value="item.value"
-                >{{ item.name }}</a-select-option>
-              </a-select>
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
@@ -196,6 +185,7 @@
           if (!errors) {
             values.id = this.id
             values.customerId = this.customerId
+            values.type = '1082-10'
             const unqualifiedInfoDTOS = []
             const all = []
             for (const index in this.descriptionList) {

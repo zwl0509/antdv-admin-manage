@@ -40,11 +40,11 @@
                 <span>{{ !!text? '是' : '否' }}</span>
               </template>
               <span slot="action" slot-scope="text, record">
-                <template v-if="record.status === '1084-20'">
-                  <a>已验证</a>
+                <template v-if="record.status === '1084-20' && actionAuth.includes('WorkerDispatch.Verify')">
+                  <a @click="handleAdd(record.attachInfos,record,'detail')">已验证</a>
                 </template>
-                <template v-else>
-                  <a @click="handleAdd(record)">去验证</a>
+                <template v-else-if="actionAuth.includes('WorkerDispatch.Verify')">
+                  <a @click="handleAdd(record.attachInfos,record,'edit')">去验证</a>
                 </template>
               </span>
             </a-table>
@@ -122,13 +122,13 @@
       }
     },
     created () {
-      // this.$store.dispatch('GetActionAuth').then(res => {
-      //   const arr = []
-      //   res.forEach(item => {
-      //     arr.push(item.key)
-      //   })
-      //   this.actionAuth = arr
-      // })
+      this.$store.dispatch('GetActionAuth').then(res => {
+        const arr = []
+        res.forEach(item => {
+          arr.push(item.key)
+        })
+        this.actionAuth = arr
+      })
       this.$getCodeList('1011', res => {
         this.jobsList = res
       })
@@ -183,8 +183,8 @@
         }
         this.getList( this.customerId,this.type)
       },
-      handleAdd(record){
-        this.$refs.WorkerInfo.add(record)
+      handleAdd(attachInfos,record,status){
+        this.$refs.WorkerInfo.add(attachInfos,record,status)
       },
       handleSub (record) {
         this.loading = true

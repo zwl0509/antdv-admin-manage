@@ -382,7 +382,7 @@ export default {
       this.$refs.add_action.add(row, 1)
     },
     addAction2 () {
-      const row = { menuId: this.menuId, menuTitle: this.menuTitle, parentArea: this.parentArea }
+      const row = { menuId: this.menuId, menuTitle: this.menuTitle, parentArea: this.parentArea, packageId: this.queryParam2.packageId}
       this.$refs.add_slave.add(row, 1)
     },
     // 定额包编辑
@@ -410,7 +410,7 @@ export default {
     },
     // 定额包详情
     handleSlaveEdit(id) {
-      this.$refs.add_slave.edit(id, 1)
+      this.$refs.add_slave.edit(id,this.queryParam2.packageId, 1)
     },
     // 删除定额包明细
     handleSlaveDel(id) {

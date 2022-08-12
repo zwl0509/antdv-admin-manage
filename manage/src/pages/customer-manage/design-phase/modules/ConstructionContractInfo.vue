@@ -59,10 +59,7 @@
             placeholder="请输入预算总金额"
             autocomplete="off"
             :disabled="type == 'detail'"
-            v-decorator="[
-              'estimateTotalAmount',
-              { rules: [{ required: false}, { validator: (r, v, fun) => regularCheck2(r, v,fun, 'number', [11,2], rulesMessage.estimateTotalAmount) }] }
-            ]"/>
+            v-decorator="['estimateTotalAmount',{ rules: [{ validator: (r,v,f) => regularCheck2(r, v, f, 'number', [11,2], '预算总金额格式校验失败') }] }]"/>
         </a-form-item>
       </a-col>
       <a-col :md="8" :xs="24">

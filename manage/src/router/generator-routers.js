@@ -72,7 +72,13 @@ const constantRouterComponents = {
   'BudgetManage': ()=> import('@/pages/customer-manage/budget-manage'), // 预算管理
   'WorkerDispatch': ()=> import('@/pages/customer-manage/worker-dispatch'), // 工人派工
   'DecorationMaterialSelect': ()=> import('@/pages/customer-manage/decoration-material-select'), // 装修选材
-  
+  'AcceptanceManage': ()=> import('@/pages/customer-manage/acceptance-manage'), // 验收管理
+  'AuxiliaryMaterialsDeclare':()=> import('@/pages/customer-manage/auxiliary-materials-declare'),//辅材申报
+  'MaterialConfirm':()=> import('@/pages/customer-manage/material-confirm'),//材料确认
+  'MeasureNotice':()=> import('@/pages/customer-manage/measure-notice'),//测量通知
+  'MainMaterialDeclare':()=> import('@/pages/customer-manage/main-material-declare'),//测量通知
+  'CivilizationOutbound':()=> import('@/pages/customer-manage/civilization-outbound'), // 文明出库
+  'CivilizedOutboundAudit':()=> import('@/pages/customer-manage/civilized-outbound-audit'), // 文明出库审核
   //  客服管理 
   'ComplaintRecord': ()=> import('@/pages/customer-service-manage/complaint-record'), // 投诉记录
   'RepairRecord': ()=> import('@/pages/customer-service-manage/repair-record'), // 报修记录
@@ -91,6 +97,7 @@ const constantRouterComponents = {
   'QuestionnaireManage':()=> import('@/pages/business-configuration/questionnaire-manage'), // 问卷管理
   // 'ConstructionTasks':()=> import('@/pages/business-configuration/construction-tasks'),//施工任务
   'ConstructionFormwork':()=>import('@/pages/business-configuration/construction-formwork'),//施工计划模板
+  'PavingPosition':()=>import('@/pages/business-configuration/paving-position')//铺装位置
 }
 
 // 前端未找到页面路由（固定不用改）

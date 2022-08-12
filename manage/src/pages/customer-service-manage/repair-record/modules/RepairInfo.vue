@@ -151,7 +151,7 @@
               placeholder="请选择报修时间"
               style="width: 100%;"
               :disabled="type == 'detail'"
-              v-decorator="['recordTime']"
+              v-decorator="['recordTime', {rules: [{required: true}]}]"
             ></a-date-picker>
           </a-form-item>
         </a-col>
@@ -231,13 +231,14 @@
               v-decorator="['remark', { rules: [{ validator: (r, v, fun) => maxLenValidator(r, v, fun, 500) }] }]"/>
           </a-form-item>
         </a-col>
-      </a-row>
-      <a-row v-if="type === 'detail'">
-        <a-form-item label="二维码" class="col-1-9">
-          <div>
-            <img class="qr-img" :src="qrCode">
-          </div>
-        </a-form-item>
+        <a-col :md="24" :xs="24">
+          <a-form-item label="回访内容" :labelCol="labelCol" :wrapperCol="wrapperCol" class="col-1-9" v-if="value === 2">
+            <a-textarea
+              :disabled="type === 'detail'"
+              placeholder="请输入回访内容"
+              v-decorator="['returnVisitContent', {rules: [{ required: true,validator:(r, v, fun)=> maxLenValidator(r, v, fun, 500)}]}]"></a-textarea>
+          </a-form-item>
+        </a-col>
       </a-row>
     </a-form>
     <customer-info ref="CustomerInfo" @getCustomer="getCustomer"></customer-info>
@@ -260,6 +261,10 @@
       type: {
         type: String,
         default: '',
+      },
+      value: {
+        type: Number,
+        default: 1
       },
     },
     data () {

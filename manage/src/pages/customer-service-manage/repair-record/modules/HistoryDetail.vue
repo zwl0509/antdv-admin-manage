@@ -11,9 +11,9 @@
     <a-spin :spinning="confirmLoading">
       <a-collapse v-model="activeKey" expand-icon-position="right" accordion>
         <a-collapse-panel key="1" header="投诉信息" forceRender>
-          <repair-info ref="RepairInfo" :type="type"></repair-info>
+          <repair-info ref="RepairInfo" :type="type" :value="modal_type"></repair-info>
         </a-collapse-panel>
-        <a-collapse-panel key="2" header="工单列表" forceRender>
+        <a-collapse-panel key="2" header="工单列表" forceRender @click.native="getCustomer">
           <work-order-list ref="WorkOrderList" :type="type"></work-order-list>
         </a-collapse-panel>
       </a-collapse>
@@ -79,7 +79,7 @@
       edit(record,value ) {
         this.modal_type = value
         this.visible = true
-        this.getDetail(record.id)
+        this.getDetail(record.csComplaintRecordId,record.returnVisitContent)
         this.$emit('getCodeList')
         this.$nextTick(() => {
           this.$refs.RepairInfo.getCodeList(this.codeType)
@@ -87,7 +87,7 @@
         })
       },
       // 获取详情
-      getDetail(id) {
+      getDetail(id,returnVisitContent) {
         this.confirmLoading = true
         this.$get({
           url: this.$api.customerServiceInfo.getDetail,
@@ -100,8 +100,18 @@
             recordType.push(item.type)
           })
           data.recordType = recordType
+          data.returnVisitContent = returnVisitContent
           this.$refs.RepairInfo.setData(data)
-          this.$refs.WorkOrderList.setData(data.dispatchInfos)
+          this.$refs.WorkOrderList.setHistoryData(data.dispatchInfos)
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
+      },
+      getCustomer(){
+        this.$get({
+          url: this.$api.customerServiceInfo.getListPage,
+          params: { customerId:this.customerId , type: '1071-20' }
+        }).then(() =>{
+          this.$refs.WorkOrderList.show(this.customerId)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
           .finally(() => { this.confirmLoading = false })
       },

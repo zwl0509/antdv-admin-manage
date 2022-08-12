@@ -53,7 +53,7 @@
         workFlowNodeId: '',
         workFlowInfoId: '',
         type: '',
-        status:''
+        status: ''
       }
     },
     methods: {
@@ -125,7 +125,6 @@
       },
       // 保存
       save(data) {
-        console.log(data)
         this.$post({
           url:  this.$api.customInfo.contractInfo.customerBuildContractInfo,
           data,

@@ -129,27 +129,17 @@
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
-            <a-form-item label="项目经理" :labelCol="labelCol" :wrapperCol="wrapperCol" >
-              <!-- <a-select
-                show-search
-                :value="value"
-                placeholder="input search text"
-                style="width: 200px"
-                :default-active-first-option="false"
-                :show-arrow="false"
-                :filter-option="false"
-                :not-found-content="null"
-                @search="handleSearch"
-                @change="handleChange">
-                <a-select-option v-for="item in data" :key="item.value">
-                  {{ item.name }}
-                </a-select-option>
-              </a-select> -->
-              <a-input
-                placeholder="请输入项目经理"
-                autocomplete="off"
-                :maxLength="50"
-                v-decorator="['workerPrincipal']"/>
+            <a-form-item label="项目经理" :labelCol="labelCol" :wrapperCol="wrapperCol">
+              <a-select
+                allowClear
+                placeholder="请选择项目经理"
+                v-decorator="['workerPrincipalId']">
+                <a-select-option
+                  v-for="(item, index) in workerList"
+                  :key="index"
+                  :value="item.id"
+                >{{ item.name }}</a-select-option>
+              </a-select>
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
@@ -214,7 +204,8 @@
         loading: false,
         form: this.$form.createForm(this),
         treeList: [],
-        attachIds: []
+        attachIds: [],
+        workerList:[],
       }
     },
     created () {
@@ -230,6 +221,7 @@
         this.imageUrl= ''
         this.visible = true
         this.workerOrgCode =  record.menuId
+        this.getEmployeeList()
         const data = {
           workerOrgName: record.menuTitle,
           orgIds: [...record.orgIds].reverse()
@@ -244,6 +236,7 @@
         this.id = record.id
         this.visible = true
         this.confirmLoading = true
+        this.getEmployeeList()
         this.$get({
           url: this.$api.basicData.worker.getDetail,
           params: { id: record.id }
@@ -272,6 +265,20 @@
           .finally(() => {
             this.confirmLoading = false
           })
+      },
+      // 获取项目经理数据
+      getEmployeeList() {
+        const data = {
+          currentPage: 0,
+          pageSize: 0,
+          positionCode:'1042-07'
+        }
+        this.$post({
+          url: this.$api.employeeManage.employeeInfo.getEasyList,
+          data
+        }).then(res => {
+          this.workerList = res.rows
+        }).catch(err => defaultErrorMessage(err, labels.APPLY_ERROR))
       },
       uploadImage (info) {
         this.loading = true

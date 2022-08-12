@@ -6,7 +6,9 @@
       :columns="columns"
       request-type="GET"
       :request-url="requestUrl"
-      :query-params="searchParams">
+      :query-params="searchParams"
+      :alert="options.alert"
+      :rowSelection="options.rowSelection">
       <template slot="$search">
         <a-col :sm="24" :md="12" :lg="8" :xl="8" :xxl="6">
           <a-form-item label="机构编码">
@@ -54,12 +56,8 @@
       </template>
       <template slot="$operate">
         <a-button type="primary" icon="plus" @click="$refs.createModal.add()" v-if="actionAuth.includes('Depart.Create')">新建</a-button>
+        <a-button v-if="selectedRowKeys.length" type="primary" icon="plus" @click="$refs.ResponsiblePerson.show(selectedRowKeys)">批量新增负责人</a-button>
       </template>
-      <!--<span slot="isLocked" slot-scope="bool, record">-->
-      <!--  <template>-->
-      <!--    <a-icon :type="record.isLocked?'check':'close'"/>-->
-      <!--  </template>-->
-      <!--</span>-->
       <span slot="action" slot-scope="text, record">
         <template v-if="actionAuth.includes('Depart.Authority')">
           <a @click="handleAuth(record)">权限管理</a>
@@ -78,6 +76,8 @@
     </list-page>
     <department-vision ref="DepartmentVision" @ok="handleOk"></department-vision>
     <action-modal ref="createModal" @ok="handleOk"/>
+    <!-- 新增负责人 -->
+    <responsible-person ref="ResponsiblePerson" @ok="handleOk"></responsible-person>
   </div>
 </template>
 
@@ -88,13 +88,15 @@
   import ActionModal from './modules/ActionModal'
   import DepartmentVision from './modules/DepartmentVision'
   import { dateFormatString, defaultErrorMessage } from '@/utils/common'
+  import ResponsiblePerson from './modules/ResponsiblePerson'
  
   export default {
     name: 'TableList',
     components: {
       ActionModal,
       DepartmentVision,
-      ListPage
+      ListPage,
+      ResponsiblePerson
     },
     data () {
       return {
@@ -106,7 +108,7 @@
         columns: [
           {
             title: '序号',
-            width: 100,
+            width: 140,
             scopedSlots: { customRender: 'serial' }
           },
           {
@@ -154,6 +156,21 @@
           }
         ],
         actionAuth: [],
+        options: {
+          alert: {
+            show: true,
+            clear: () => {
+              this.selectedRowKeys = []
+              this.selectedRows = []
+            },
+          },
+          rowSelection: {
+            selectedRowKeys: this.selectedRowKeys,
+            onChange: this.onSelectChange,
+          },
+        },
+        selectedRowKeys:[],
+        selectedRows: []
       }
     },
     created () {
@@ -173,6 +190,10 @@
         }
         delete this.queryParam.date
         return this.queryParam
+      },
+      onSelectChange (selectedRowKeys, selectedRows) {
+        this.selectedRowKeys = selectedRowKeys
+        this.selectedRows = selectedRows
       },
       delEmptyChildren (node) {
         node.forEach(item => {
@@ -209,10 +230,7 @@
       handleOk () {
         this.$refs.listPage.refresh()
       },
-      onSelectChange (selectedRowKeys, selectedRows) {
-        this.selectedRowKeys = selectedRowKeys
-        this.selectedRows = selectedRows
-      },
+
       toggleAdvanced () {
         this.advanced = !this.advanced
       },
@@ -222,5 +240,9 @@
         }
       }
     },
+    activated() {
+      this.selectedRowKeys = []
+      this.$refs.listPage.updateSelect([],[])
+    }
   }
 </script>

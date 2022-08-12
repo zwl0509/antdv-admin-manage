@@ -95,9 +95,15 @@
             <a @click="$refs.HandoverDesign.show([record.id])">移交设计部</a>
             <a-divider type="vertical"/>
           </template>
-          <template v-if="record.auditStatus == '1076-20' && actionAuth.includes('SecondCommon.Questionnaire')">
-            <a @click="$refs.QuestionnaireModal.show(record,'1078-30')">填写问卷</a>
-            <a-divider type="vertical"/>
+          <template>
+            <template v-if="record.auditStatus == '1076-20' && actionAuth.includes('SecondCommon.Questionnaire')">
+              <a @click="$refs.QuestionnaireModal.show(record,'1078-30')">填写问卷</a>
+              <a-divider type="vertical"/>
+            </template>
+            <template v-if="record.auditStatus == '1076-10' && actionAuth.includes('SecondCommon.UploadPhoto')">
+              <a @click="$refs.UploadAttach.show(record)">上传图片</a>
+              <a-divider type="vertical"/>
+            </template>
           </template>
           <template v-if="actionAuth.includes('SecondCommon.CustomerTracking')">
             <a @click="$refs.CustomerTracking.show(record, queryParam.type, actionAuth.includes('SecondCommon.CreateCustomerTracking'))">客户跟踪</a>
@@ -161,6 +167,8 @@
     <questionnaire-modal ref="QuestionnaireModal" @ok="handleOk"></questionnaire-modal>
     <!-- 导入部门信息 -->
     <import-department-info ref="ImportDepartmentInfo" @ok="handleOk"></import-department-info>
+    <!-- 移交设计部 => 上传附件 -->
+    <upload-attach ref="UploadAttach" @ok="handleOk"></upload-attach>
   </div>
 </template>
 
@@ -181,8 +189,10 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
+      title: '小区',
+      dataIndex: 'areaNamePath',
+      width: 160,
+      scopedSlots: { customRender: 'ellipsis'}
     },
     {
       title: '客户类型',
@@ -271,6 +281,7 @@
   import CustomerNewLog from '@/pages/customer-manage/primitive-common-sea-pool/modules/CustomerNewLog'
   import HandoverDesign from '../first-common-sea-pool/modules/HandoverDesign'
   import QuestionnaireModal from '../first-common-sea-pool/modules/QuestionnaireModal'
+  import UploadAttach from '@/pages/customer-manage/first-common-sea-pool/modules/UploadAttach.vue'
 
   export default {
     name: 'TableList',
@@ -293,7 +304,8 @@
       AboutFirstSee,
       GetCustomer,
       HandoverDesign,
-      QuestionnaireModal
+      QuestionnaireModal,
+      UploadAttach
     },
     data () {
       return {
@@ -445,8 +457,11 @@
           this.codeType.replyOrderTag =  res['1036'] || []  // 回单标志
           this.codeType.trackType = res['1037'] || []  // 跟踪类型
           this.codeType.recordType = res['1038'] || []  // 记录类型
-          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
           this.codeType.importType = res['1066'] || [] //导入日志类型
+          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
+          const filterList = ['1044-03','1044-07']
+          const newList =  this.codeType.infoSourceType .filter(item=> { return !filterList.includes(item.value) })
+          this.codeType.infoSourceType = newList
         })
       },
       handleOk () {
@@ -480,7 +495,7 @@
       },
       // 下载模版
       downloadTemplate(){
-        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template.xlsx'
+        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template-two.xlsx'
         const link = document.createElement('a')
         link.style.display = 'none'
         link.href = url

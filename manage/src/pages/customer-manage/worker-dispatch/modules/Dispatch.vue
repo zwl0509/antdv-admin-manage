@@ -28,10 +28,10 @@
         <a-col class="borderLeft" :span="20" >
           <a-spin :spinning="loading">
             <div v-if="this.menuKey">
-              <div style="margin-bottom: 10px;" v-if="this.dataList.length === 0">
+              <div style="margin-bottom: 10px;" v-if="this.dataList.length === 0 && actionAuth.includes('WorkerDispatch.Dispatch')">
                 <a-button type="primary" icon="edit" style="margin-bottom: 8px;" @click="handleAdd(type)">派工</a-button>
               </div>
-              <div style="margin-bottom: 10px;" v-else>
+              <div style="margin-bottom: 10px;" v-else-if="actionAuth.includes('WorkerDispatch.AddDispatch')">
                 <a-button type="primary" icon="edit" style="margin-bottom: 8px;" @click="handleAdd(type)">加派</a-button>
               </div>
             </div>
@@ -121,13 +121,13 @@
       }
     },
     created () {
-      // this.$store.dispatch('GetActionAuth').then(res => {
-      //   const arr = []
-      //   res.forEach(item => {
-      //     arr.push(item.key)
-      //   })
-      //   this.actionAuth = arr
-      // })
+      this.$store.dispatch('GetActionAuth').then(res => {
+        const arr = []
+        res.forEach(item => {
+          arr.push(item.key)
+        })
+        this.actionAuth = arr
+      })
       this.$getCodeList('1011', res => {
         this.jobsList = res
       })

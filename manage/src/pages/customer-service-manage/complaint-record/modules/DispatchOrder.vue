@@ -99,40 +99,18 @@
           </a-col>
           <a-col :md="24" :xs="24">
             <a-form-item label="关联处理人" class="col-1-9" >
-              <a-select
-                mode="multiple"
-                allowClear
-                showArrow
-                show-search
-                :disabled="modal_type === 'detail'"
-                change-on-select
-                placeholder="请选择关联处理人"
-                :filterOption="filterOption"
-                v-decorator="['handlers']"
-              >
-                <a-select-option v-for="(item,index) in json.type2" :key="index" :value="item.value">
-                  {{ item.name }}
-                </a-select-option>
-              </a-select>
+              <a-tooltip v-if="customerName" :title="customerName" :disabled="type == 'detail'">
+                <div v-if="customerName" class="customer-name">{{ employeeName || '' }}</div>
+              </a-tooltip>
+              <a-button type="primary" :disabled="type == 'detail'" @click="selectPerson">选择关联处理人</a-button>
             </a-form-item>
           </a-col>
           <a-col :md="24" :xs="24">
             <a-form-item label="抄送人" class="col-1-9" >
-              <a-select
-                mode="multiple"
-                allowClear
-                showArrow
-                show-search
-                change-on-select
-                :disabled="modal_type === 'detail'"
-                placeholder="请选择抄送人"
-                :filterOption="filterOption"
-                v-decorator="['reminders']"
-              >
-                <a-select-option v-for="(item,index) in json.type5" :key="index" :value="item.value">
-                  {{ item.name }}
-                </a-select-option>
-              </a-select>
+              <a-tooltip v-if="customerName" :title="customerName" :disabled="type == 'detail'">
+                <div v-if="customerName" class="customer-name">{{ employeeName || '' }}</div>
+              </a-tooltip>
+              <a-button type="primary" :disabled="type == 'detail'" @click="selectReminders">选择抄送人</a-button>
             </a-form-item>
           </a-col>
         </a-row>
@@ -218,17 +196,19 @@
         <a-button @click="handleCancel">取消</a-button>
       </div>
     </template>
+    <people-select ref="PeopleSelect" @getHandlers="getHandlers" @getReminders="getReminders"></people-select>
   </a-modal>
 </template>
 
 <script>
   import json from './mocks'
   import labels from '@/utils/labels'
+  import PeopleSelect from '@/pages/customer-service-manage/complaint-record/modules/ReminderSelect'
   import { defaultErrorMessage, maxLenValidator, numberValidator, regularCheck, regularCheck2 } from '@/utils/common'
+  import Ellipsis from '@/components/Ellipsis/Ellipsis'
   export default {
     name: 'DispatchOrder',
-    components:{
-    },
+    components: { PeopleSelect,Ellipsis },
     props: {
       codeType: {
         type: Object,
@@ -268,9 +248,12 @@
         isError: false,
         form: this.$form.createForm(this),
         errorMessage: '获取数据失败',
-        activeKey: ['1'],
         id: '',
         list:[0],
+        reminders: [],
+        remindersList: [],
+        handlers: [],
+        handlersList: [],
         autoIndex: 0,
         customerName:'',
         finalAddress:'',
@@ -308,6 +291,39 @@
       // 获取详情
       getDetail(id){
 
+      },
+      selectPerson(){
+        const handlers = this.handlers
+        const customerId = this.customerId
+        if (handlers.length){
+          this.$refs.PeopleSelect.edit(handlers,customerId,1)
+        }else {
+          this.$refs.PeopleSelect.add(customerId,1)
+        }
+        this.$forceUpdate()
+      },
+      getHandlers(data){
+        console.log(data)
+        this.handlers = data.handlers
+        this.handlersList = data.handlersList
+        const employeeName =[]
+        data.handlersList.forEach(i=>{
+          employeeName.push(i.employeeName)
+        })
+      },
+      selectReminders(){
+        const reminders = this.reminders
+        const customerId = this.customerId
+        if (reminders.length){
+          this.$refs.PeopleSelect.edit(reminders,customerId,0)
+        }else {
+          this.$refs.PeopleSelect.add(customerId,0)
+        }
+        this.$forceUpdate()
+      },
+      getReminders(data){
+        this.reminders = data.reminders
+        this.remindersList = data.remindersList
       },
       // 获取客户详情
       getCustomerDetail(id) {

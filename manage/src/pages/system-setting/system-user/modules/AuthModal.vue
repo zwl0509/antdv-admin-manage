@@ -8,8 +8,7 @@
     :confirmLoading="confirmLoading"
     @ok="handleSubmit"
     @cancel="handleCancel"
-    :mask-closable="false"
-  >
+    :mask-closable="false">
     <a-spin :spinning="confirmLoading">
       <a-tabs type="card" :tabBarGutter="10" v-model="activeKey" @change="change(activeKey)">
         <a-tab-pane key="1" tab="用户后台权限" forceRender v-if="batch || activeKey == '1'">
@@ -24,6 +23,9 @@
         <a-tab-pane key="4" tab="部门视野" forceRender v-if="batch || activeKey == '4'">
           <department-vision ref="DepartmentVision" />
         </a-tab-pane>
+        <a-tab-pane key="5" tab="材料分类权限" forceRender v-if="batch || activeKey == '5'">
+          <material-classify ref="MaterialClassify" />
+        </a-tab-pane>
       </a-tabs>
     </a-spin>
   </a-modal>
@@ -36,8 +38,10 @@ import SystemAuth from './SystemAuth'
 import DepartmentVision from './DepartmentVision'
 import UserVision from './UserVision'
 import { defaultErrorMessage } from '@/utils/common'
+import MaterialClassify from '@/pages/system-setting/system-user/modules/MaterialClassify'
 export default {
   components: {
+    MaterialClassify,
     DepartmentVision,
     UserVision,
     SystemAuth,
@@ -55,9 +59,6 @@ export default {
     }
   },
   methods: {
-    change(e) {
-      console.log(e)
-    },
     show(id, index, batch, targetIds) {
       this.targetIds = targetIds
       this.activeKey = index
@@ -96,9 +97,11 @@ export default {
       }).then((res) => {
         this.$refs.UserVision && this.$refs.UserVision.setData(res?.result.userView || [])
         this.$refs.DepartmentVision && this.$refs.DepartmentVision.setData(res?.result.organizationView || [])
+        this.$refs.MaterialClassify && this.$refs.MaterialClassify.setData(res?.result.materialClassAuthority || [])
       })
     },
     handleSubmit() {
+      this.confirmLoading = true
       let data = {}
       if (this.batch) {
         data = {
@@ -111,6 +114,11 @@ export default {
             id: this.id,
             ids: this.$refs.UserVision.getData(),
             type: '1052-10',
+          },
+          materialClassAuthorityDTO: {
+            id: this.id,
+            ids: this.$refs.MaterialClassify.getData(),
+            targetType:'user'
           },
           sitemapActionAuthorityEditDTOS: this.$refs.SystemAuth.getData(),
           sitemapActionAuthorityEditAppDTO: this.$refs.AppAuth.getData(),
@@ -140,8 +148,7 @@ export default {
         url: this.batch ? this.$api.auth.menuAuthEdit : this.$api.auth.siteMapActionAuthorityBatch,
         data,
         needResponse: true,
-      })
-        .then((res) => {
+      }).then((res) => {
           this.handleCancel()
           this.$emit('ok')
           this.$notification.success({
@@ -150,9 +157,7 @@ export default {
           })
         })
         .catch((err) => defaultErrorMessage(err, labels.SAVE_FAIL))
-        .finally(() => {
-          this.confirmLoading = false
-        })
+        .finally(() => { this.confirmLoading = false })
     },
     handleCancel() {
       this.visible = false

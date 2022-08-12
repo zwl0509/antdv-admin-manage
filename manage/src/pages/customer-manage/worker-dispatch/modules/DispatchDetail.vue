@@ -41,7 +41,7 @@
           </a-col>
         </a-row>
       </a-form>
-      <!--选择门店 -->
+      <!--选择工人 -->
       <select-worker ref="SelectWorker" @getWorker="getWorker"></select-worker>
     </a-spin>
   </a-modal>

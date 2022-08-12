@@ -12,6 +12,7 @@ const api = {
     getPageList: '/intended/list',
     getListPage: '/process/list',
   },
+  // /system/sitemaps/getIdByKey/{key}
   auth: {
     getMenuActionListByTargetIds: '/auth/getAuthActionByTargetIds',//根据菜单获取按钮权限
     getMenuListByTargetId: '/auth/getAuthSiteMapByTargetId',///获取菜单权限
@@ -49,7 +50,7 @@ const api = {
     getTreeList: '/system/organizations/getTreeMap', // get 组织机构树状列表
     authority: '/system/organizationAuthority/authority',//部门授权
     getAuthority: '/system/organizationAuthority/getAuthority/{id}', // get部门授权视野
-
+    addPersonInCharge: '/system/organizations/addPersonInCharge', // post 批量负责人
   },
   //基础数据
   basicData: {
@@ -109,7 +110,7 @@ const api = {
     },
     packageInfo:{
       getList:'/basic/basicPackageInfo/getList',//获取定额包列表
-      getDetail:'/basic/basicPackageInfo/getDetail/{id}',//获取定额包数据详情
+      getDetail:'/basic/basicPackageInfo/getMasterDetail/{id}',//获取定额包数据详情
       editMaster:'/basic/basicPackageInfo/editMaster',//编辑定额包主表数据
       deleteMaster:'/basic/basicPackageInfo/deleteMasterById/{id}',//删除定额包主数据,
       deleteSlave:'/basic/basicPackageInfo/deleteSlaveById/{id}',//删除定额包明细数据,
@@ -138,7 +139,16 @@ const api = {
       isLocked: '/basic/stock/setLocked/{id}',
       getStock:'/basic/stock/getStock', // post
     },
-
+    // 材料确认
+    materialConfirmInfo: {
+      getMaterialDetail: '/customer/materialConfirm/getBillMaster/{customerId}', // get材料到场
+      getBillMasterDetail: '/customer/materialConfirm/getBillMasterDetail/{billMasterId}', // get 材料明细
+      masterMaterialInfo: '/customer/materialConfirm/masterMaterialInfo/{customerId}', // get 主材申请
+      deliveryNotice: '/customer/materialConfirm/deliveryNotice', // post 送货通知
+      deliveryPrivilege: '/customer/materialConfirm/deliveryPrivilege', // post 特权送货
+      allConfirmBatch: '/customer/materialConfirm/allConfirmBatch', // post 批量确认
+      allConfirm: '/customer/materialConfirm/allConfirm', // post 材料确认
+    }
   },
   // 客户信息
   customInfo: {
@@ -183,6 +193,21 @@ const api = {
       edit:'/customer/intendedCustomer/edit',//编辑
       getEvasionDetail: '/customer/intendedCustomer/getEvasionDetail/{customerId}', // get 逃单详情页
     },
+    // 材料测量通知
+    measureNotifyInfo: {
+      getNotifiedList: '/material/measureNotify/getNotifiedList', // get 获取已通知列表
+      notMeasure: '/material/measureNotify/notMeasure', // 转不测量
+      sendMeasureNotify:'/material/measureNotify/sendMeasureNotify', // 发送测量通知
+    },
+    // 文明出库
+    civilizedDeliveryInfo:{
+      getMaterialClassList: '/material/civilizedDeliveryInfo/getMaterialClassList',// get 获取材料分类列表
+      getMaterialsByClassId: '/material/civilizedDeliveryInfo/getMaterialsByClassId', // get 获取材料列表
+      application: '/material/civilizedDeliveryInfo/application',  // 文明材料申请
+      getDetail: '/material/civilizedDeliveryInfo/getDetail/{id}', // get 申请记录详情
+      getList: '/material/civilizedDeliveryInfo/getList', // get 申请记录列表
+      audit: '/material/civilizedDeliveryInfo/audit', // 文明材料审核
+    },
     // 飞单逃单管理
     flyOrEvasionInfo: {
       getListPage: '/customer/flyOrEvasion/getList', // get 列表
@@ -192,9 +217,12 @@ const api = {
       getDetail: '/customer/flyOrEvasion/getDetail/{id}', // get 详情
       application:'/customer/flyOrEvasion/application',//飞/逃单申请
     },
+    // 审核管理
     customerAuditInfo: {
       getListPage: '/customer/customerAuditInfo/getList',
       audit: '/customer/customerAuditInfo/audit',
+      uploadAttach: '/customer/customerAuditInfo/uploadAttach', // post 移交设计部 => 上传附件
+      getDetail: '/customer/customerAuditInfo/getDetailWeb/{applicationId}',// 获取审核详情
     },
     // 原始公海池
     customerCommon: {
@@ -236,6 +264,9 @@ const api = {
       getDetail:'/customer/customerInspectionRecord/getDetail/{id}', // 查询巡检记录详情
       edit:'/customer/customerInspectionRecord/edit', // 新增/编辑巡检记录
       delete:'/customer/customerInspectionRecord/delById/{id}',// 删除巡检记录
+      editStandard:'/customer/customerInspectionRecord/editStandard',// 新增标准巡检记录
+      getQuestionInfo:'/customer/customerInspectionRecord/getStandardInspectionInfo/{inspectionId}',// 查询标准巡检记录问卷列表
+      getRectificationList:'/customer/customerInspectionRecord/getRectificationList/{inspectionId}',// 查询巡检整改列表
     },
     //工人派工
     workerDispatchInfo:{
@@ -253,6 +284,32 @@ const api = {
       submit:'/material/customerChooseMaterialInfo/submit/{id}',// 客户选材信息提交
       getAreaList:'/material/customerChooseMaterialInfo/getAreaList',// 客户选材信息所属区域查看
       delete:'/material/customerChooseMaterialInfo/delByIds',// 客户选材信息删除
+      getPackages:'/material/customerChooseMaterialInfo/getPackages',// 获取所有主材包
+      getPackageMaterials:'/material/customerChooseMaterialInfo/getPackageMaterials',// 客户预算主材包材料信息获取
+      getPromotionMaterials:'/material/customerChooseMaterialInfo/getPromotionMaterials',// 客户活动材料信息获取
+      getDetail:'/material/customerChooseMaterialInfo/getChooseMaterialDetail/{id}',// 客户活动材料信息获取
+      import:'/material/customerChooseMaterialInfo/importBudMaterial/{customerId}'// 一键导入客户选材预算
+    },
+    // 客户验收信息
+    acceptanceInfo: {
+      getListPage: '/construction/customerConstructionTaskInfo/getCustomerBuildList', // post 已完工or未完工
+      getCheckTypeList: '/construction/customerConstructionTaskInfo/getCheckTypeList/{customerId}', // get 客户验收类型列表
+      getCheckList: '/construction/customerConstructionTaskInfo/getCheckList/{customerConstructionTaskId}',// get 客户验收列表
+      editRectification: '/customer/customerInspectionRecord/editRectification', // post 编辑客户整改信息
+      getRectificationDetail: '/customer/customerInspectionRecord/getRectificationDetail', // post 获取详情
+    }
+  },
+  // 材料申报
+  materialDeclare:{
+    // 辅材申报信息
+    auxiliaryMaterialsInfo:{
+      edit: '/material/auxiliaryMaterialsInfo/edit', // 申报/修改/提交材料申报单据 材料申报信息新增/编辑
+      getDetail: '/material/auxiliaryMaterialsInfo/getDeclarationDetail/{declarationId}', // 获取客户材料申报单据详情
+      getDeclarationList: '/material/auxiliaryMaterialsInfo/getDeclarationList', // 获取客户材料申报单据列表
+      getMaterialClassList:'/material/auxiliaryMaterialsInfo/getMaterialClassList',// 获取对应仓库的材料分类
+      getMaterials:'/material​/auxiliaryMaterialsInfo/getMaterialsWithClassify/{stockId}',// 获取对应仓库的带分类材料
+      getStockList:'/material/auxiliaryMaterialsInfo/getStockList',// 获取仓库列表
+      getListForBrand:'/material/customerChooseMaterialInfo/getListForBrandForPage',// 客户选材信息查看(带品牌分类)
     },
 
   },
@@ -312,8 +369,14 @@ const api = {
     dispatch:'complain/csComplaintRecordInfo/dispatch',// 新增/编辑 派单信息
     getListPage:'complain/csComplaintRecordInfo/getList', // 新增/编辑 报修信息
     edit:'complain/csComplaintRecordInfo/edit',// 获取客户基本信息列表
-    getDetail:'complain/csComplaintRecordInfo/getDetail/{id}',// 获取报修信息详情
-    getCustomerList:'complain/csComplaintRecordInfo/getCustomerList'// 获取报修信息列表
+    getDetail:'complain/csComplaintRecordInfo/getDetail',// 获取报修信息详情
+    getCustomerList:'complain/csComplaintRecordInfo/getCustomerList',// 获取报修信息列表
+    closeTask:'/complain/csComplaintInfo/closeTask/{id}',// 关闭 报修/检修/投诉 任务
+    remindBySelf:'/complain/csComplaintInfo/remindBySelf',// 自定义下次提醒时间
+    getDispatch:'/complain/csComplaintRecordInfo/getRecordDispatchs/{recordId}',// 获取报修任务的工单列表
+    revisit:'/complain/csComplaintRecordInfo/revisit',// 客服回访记录
+    getHistoryList:'/complain/csComplaintRecordInfo/getCustomerRevisitList/{customerId}',// 客户历史回访记录
+
   },
 
   //流程管理
@@ -350,7 +413,10 @@ const api = {
       getDetail: '/surveyInfo/getDetail/{id}', // get 获取问卷调查信息
       updateIsUse:'/surveyInfo/updateIsUse/{id}', // put 变更状态
       getSurveyDetail:'/customer/customerSurvey/getSurveyDetail/{surveyType}', // get 获取问卷详情
+      getSurveyDetailById:'/customer/customerSurvey/getSurveyDetailById/{id}', // get 获取问卷详情(id)
       submitSurvey:'/customer/customerSurvey/submitSurvey', // post 提交问卷
+      constructionTaskCheck: '/construction/customerConstructionTaskInfo/constructionTaskCheck', // post 施工任务验收
+      getQuestionByIds: '/customer/customerSurvey/getQuestionByIds', // post 获取不合格问卷ID
     }
   },
   construction:{
@@ -368,14 +434,20 @@ const api = {
       edit:'/construction/basicConstructionTemplateInfo/edit', // 编辑施工任务模板信息
       delete:'/construction/basicConstructionTemplateInfo/delete/{id}',// 删除施工任务模板信息
     },
-    // 客户施工任务信息
+    // 客户施工任务信息 => 客户信息
     customerConstructionTaskInfo: {
       getGanttList: '/construction/customerConstructionTaskInfo/getGanttChartInfo',// post获取gantt信息
       edit: '/construction/customerConstructionTaskInfo/edit', // post 编辑施工任务
       startOrEnd:'/construction/customerConstructionTaskInfo/startOrEnd', // 开工/完工
+      delay: '/construction/customerConstructionTaskInfo/delay', // post 延期
       createGanttList: '/construction/customerConstructionTaskInfo/createGanttChartInfo',// post gantt信息
       getGanttDetail: '/construction/customerConstructionTaskInfo/getCustomerGanttChartList/{customerId}',// get 客户gantt数据
       getTableData: '/construction/customerConstructionTaskInfo/getCustomerTaskList/{customerId}', // get客户施工计划表
+      getTaskDetail: '/construction/customerConstructionTaskInfo/getCustomerTaskExtendsInfo/{customerConstructionTaskId}',// get 获取任务详情
+      getResumeWorkPlanList: '/construction/customerConstructionTaskInfo/getConstructionPlanStopInfo', // post 停复工列表
+      createShutDownApply: '/construction/customerConstructionTaskInfo/constructionPlanStop', // post 新增停工申请
+		  shutDownAudit: '/construction/customerConstructionTaskInfo/auditConstructionPlanStop', // post 审核停复工
+      customerTaskUrge: '/construction/customerConstructionTaskInfo/customerTaskUrge', //post 催办
     }
   },
 
@@ -397,7 +469,7 @@ const api = {
       delete: '/system/sitemaps/delete/{id}',
       getDetail: '/system/sitemaps/getDetail/{id}',
       getListPage: '/system/sitemaps/getList',
-
+      getIdByKey: '/system/sitemaps/getIdByKey/{key}', // get 根据key获取ID
       actionDelete: '/system/action/delete/{id}',
       getActionList: '/system/action/getList',
       getActionDetail: '/system/action/getDetail/{id}',

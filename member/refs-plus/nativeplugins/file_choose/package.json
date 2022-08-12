@@ -1,0 +1,19 @@
+{
+	"name":"File_Choose",
+	"id":"File_Choose",
+	"versioin":"1.0.0",
+	"descriptio":"提供Android插件开发Demo",
+	"_dp_type":"nativeplugin",
+	"_dp_nativeplugin":{
+		"android":{
+			"integrateType":"aar",
+			"plugins": [
+				{
+				  "type": "module",
+				  "name": "File—Choose",
+				  "class": "com.microenterprises.file_choose.FileChooseModule"
+				}
+			]
+		}
+	}
+}

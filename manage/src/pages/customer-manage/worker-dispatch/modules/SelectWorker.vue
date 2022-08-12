@@ -10,7 +10,7 @@
     :confirmLoading="loading">
     <a-spin :spinning="loading">
       <list-page
-        ref="listPage2"
+        ref="listPage"
         @resetParams="resetSearchForm"
         :show-search="false"
         :request-url="requestUrl"
@@ -27,6 +27,7 @@
 
 <script>
   import ListPage from '@/components/ListPage'
+  import api from '@/api'
   export default {
      components: {
       ListPage
@@ -38,6 +39,7 @@
         visible: false,
         loading: false,
         queryParam: {
+          workerPrincipalId : this.$store.state.user.info.id
         },
         requestUrl: this.$api.basicData.worker.getListPage,
         // 表头
@@ -111,6 +113,8 @@
       },
       resetSearchForm () {
         this.queryParam = {
+          //当前用户id
+          workerPrincipalId : this.$store.state.user.info.id
         }
       },
       refresh () {

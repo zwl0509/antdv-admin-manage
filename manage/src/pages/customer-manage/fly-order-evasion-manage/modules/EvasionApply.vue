@@ -100,6 +100,11 @@
             dataIndex: 'typeName'
           },
           {
+            title: '审核状态',
+            align:'center',
+            dataIndex: 'statusName'
+          },
+          {
             title: '申请时间',
             align:'center',
             dataIndex: 'applicationDate'

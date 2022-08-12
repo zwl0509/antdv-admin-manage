@@ -19,7 +19,7 @@
         <a-collapse-panel key="2" header="报修信息" forceRender>
           <repair-info ref="RepairInfo" :type="modal_type" @getCustomerId="getCustomerId"></repair-info>
         </a-collapse-panel>
-        <a-collapse-panel key="3" header="工单列表" forceRender>
+        <a-collapse-panel key="3" header="工单列表" forceRender @click.native="getCustomer">
           <work-order-list ref="WorkOrderList" :type="modal_type"></work-order-list>
         </a-collapse-panel>
       </a-collapse>
@@ -61,11 +61,11 @@
       modal_title() {
         switch (this.modal_type) {
           case 'add' :
-            return '新增投诉记录'
+            return '新增报修记录'
           case 'edit' :
-            return '编辑投诉记录'
+            return '编辑报修记录'
           case 'detail' :
-            return '投诉记录详情'
+            return '报修记录详情'
           default:
             return ''
         }
@@ -86,18 +86,19 @@
         },
         stateList:[
           {
-            name:'历史投诉信息',key: 0
+            name:'历史投诉记录',key: 0
           },
           {
-            name:'历史报修信息',key: 1
+            name:'历史报修记录',key: 1
           },
           {
-            name:'历史回访信息',key: 2
-          }
+            name:'历史回访记录',key: 2
+          },
         ],
         value: 0,
         customerId:'',
         status:'',
+        employeeRole:'',
       }
     },
     methods: {
@@ -112,12 +113,13 @@
         })
       },
       edit(record , type ,status) {
+        this.employeeRole = record.employeeRole
         this.id = record.id
         this.status = status
         this.customerId = record.customerId
         this.modal_type = type
         this.visible = true
-        this.getDetail(this.id)
+        this.getDetail(this.id,this.employeeRole,record.csComplaintDispatchIds)
         this.$emit('getCodeList')
         this.$nextTick(() => {
           this.$refs.RepairInfo.getCodeList(this.codeType)
@@ -128,7 +130,7 @@
       getHistory(){
         this.$get({
           url: this.$api.customerServiceInfo.getListPage,
-          params: { customerId:this.customerId , type: '1071-10' }
+          params: { customerId:this.customerId , type: '1071-20' }
         }).then(() =>{
           this.$refs.HistoryTable.show(this.customerId,this.value)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
@@ -143,12 +145,21 @@
       getCustomerId(data){
         this.customerId = data.customerId
       },
+      getCustomer(){
+        this.$get({
+          url: this.$api.customerServiceInfo.getListPage,
+          params: { customerId:this.customerId , type: '1071-20' }
+        }).then(() =>{
+          this.$refs.WorkOrderList.show(this.customerId)
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
+      },
       // 获取详情
-      getDetail(id) {
+      getDetail(id,employeeRole,csComplaintDispatchIds) {
         this.confirmLoading = true
         this.$get({
           url: this.$api.customerServiceInfo.getDetail,
-          params: { id }
+          params: { id,employeeRole }
         }).then((res) =>{
           const data = { ...res }
           const recordType = []
@@ -158,7 +169,7 @@
           data.recordType = recordType
           this.customerId = data.customerId
           this.$refs.RepairInfo.setData(data)
-          this.$refs.WorkOrderList.setData(data.dispatchInfos)
+          this.$refs.WorkOrderList.setData(data.dispatchInfos,data.id,csComplaintDispatchIds)
           this.$refs.HistoryTable.show(this.customerId,this.value)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
           .finally(() => { this.confirmLoading = false })
@@ -169,12 +180,14 @@
         }
         this.$refs.RepairInfo.getData().then((res)=>{
           values.type = '1071-20'
+          values.employeeRole = this.employeeRole
           values.recordSource = res.recordSource
           values.recordTypes = res.recordTypes
           values.customerId = res.customerId
           values.recordTime = res.recordTime
           values.remark = res.remark
           values.dispatchInfos = this.$refs.WorkOrderList.getData()
+          values.id = this.id
           return this.save(values)
         }).catch(err => defaultErrorMessage(err, labels.SAVE_FAIL))
       },

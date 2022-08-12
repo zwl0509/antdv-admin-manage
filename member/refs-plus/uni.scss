@@ -1,0 +1,175 @@
+/**
+ * 下方引入的为uView UI的集成样式文件，为scss预处理器，其中包含了一些"u-"开头的自定义变量
+ * 使用的时候，请将下面的一行复制到您的uniapp项目根目录的uni.scss中即可
+ * uView自定义的css类名和scss变量，均以"u-"开头，不会造成冲突，请放心使用
+ */
+  @import 'uview-ui/theme.scss';
+  @import "./common/global";
+  @import "./common/theme";
+ //.uni-picker-container .uni-picker-action.uni-picker-action-confirm {
+ //  color: $primaryColor;
+ //}
+
+page{
+  font-family: PingFang SC;
+}
+$primaryColor: #E53E3D;
+
+.fl-cc{
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.fl-cu{
+  display: flex;
+  align-items: center;
+}
+.fl-su{
+  display: flex;
+  align-items: flex-start;
+}
+.fl-cc-c{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+}
+.fl-csa{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-around;
+}
+.fl-cs{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+}
+.fl-ce{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+.fl-csb{
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.fl-sb{
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+}
+.fl-ssb{
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.fl-esb{
+  width: 100%;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+}
+// 底部通用按钮样式
+.footer {
+  width: 100%;
+  position: fixed;
+  bottom: 0rpx;
+  left: 0rpx;
+  background-color: #FFFFFF;
+  height: 140rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 60rpx 30rpx;
+  z-index: 4;
+  border-top: 2rpx solid #F0F0F0;
+  .primary {
+    width: 100%;
+    height: 72rpx;
+    background: linear-gradient(90deg, #E40000 0%, #B80201 100%);
+    color: #FFFFFF;
+    opacity: 1;
+    border-radius: 44rpx;
+    margin: 0 20rpx;
+    line-height: 72rpx;
+    text-align: center;
+    font-size: 32rpx;
+  }
+  .white {
+    width: 100%;
+    height: 72rpx;
+    line-height: 72rpx;
+    font-size: 32rpx;
+    margin: 0 20rpx;
+    color: #333333;
+    text-align: center;
+    border: 1rpx solid #C0C0C0;
+    opacity: 1;
+    border-radius: 44rpx;
+  }
+  .primary-disabled {
+    background: rgba(184,2,1,0.4);
+  }
+  .white-disabled {
+    color: #999999;
+    background: rgba(255,255,255,0.4);
+  }
+}
+.footer-page {
+  width: 100%;
+  position: fixed;
+  bottom: 0rpx;
+  left: 0rpx;
+  background-color: #F8F8F8;
+  height: 140rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 60rpx 30rpx;
+  z-index: 4;
+  .primary {
+    width: 100%;
+    height: 72rpx;
+    background: linear-gradient(90deg, #E40000 0%, #B80201 100%);
+    color: #FFFFFF;
+    opacity: 1;
+    border-radius: 44rpx;
+    margin: 0 20rpx;
+    line-height: 72rpx;
+    text-align: center;
+    font-size: 32rpx;
+  }
+  .white {
+    width: 100%;
+    height: 72rpx;
+    line-height: 72rpx;
+    font-size: 32rpx;
+    margin: 0 20rpx;
+    color: #333333;
+    text-align: center;
+    border: 1rpx solid #C0C0C0;
+    opacity: 1;
+    border-radius: 44rpx;
+  }
+  .primary-disabled {
+    background: rgba(184,2,1,0.4);
+  }
+  .white-disabled {
+    color: #999999;
+    background: rgba(255,255,255,0.4);
+  }
+}
+// 分割线
+.divider {
+  width: 2rpx;
+  background-color: #D0D0D0;
+  height: 24rpx;
+  margin: 0 32rpx;
+}

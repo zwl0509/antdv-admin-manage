@@ -208,7 +208,7 @@ export default {
               this.localDataSource = afterData.rows
             }
           } else {
-            this.localDataSource = r.rows // 返回结果中的数组数据
+            this.localDataSource = (this.showPagination ? r.rows : r) || [] // 返回结果中的数组数据
           }
           this.localPagination = this.showPagination && Object.assign({}, this.localPagination, {
             current: (pagination && pagination.current) ||

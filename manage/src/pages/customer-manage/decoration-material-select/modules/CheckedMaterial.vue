@@ -15,21 +15,8 @@
       :pagination="false"
       :scroll="{x: 2500, y: 520 }">
       <span slot="serial" slot-scope="text, record, index">{{ index + 1 }}</span>
-      <template slot="areas" slot-scope="text, record">
-        <a-select
-          mode="multiple"
-          style="width: 180px"
-          placeholder="请选择所属区域"
-          allowClear
-          showArrow
-          disabled
-          v-if="status === 'edit'"
-          v-model="record.area"
-          @change="update">
-          <a-select-option v-for="(item, index) in areaList" :key="index" :value="item.value">
-            {{ item.name }}
-          </a-select-option>
-        </a-select>
+      <template slot="areas" slot-scope="text,record">
+        <div v-if="status === 'edit'" @change="update">{{ areaName }}</div>
         <a-select
           mode="multiple"
           style="width: 180px"
@@ -44,36 +31,31 @@
           </a-select-option>
         </a-select>
       </template>
-      <template slot="type" slot-scope="text, record">
-        <a-select
-          style="width: 180px"
-          placeholder="请选择材料类型"
-          allowClear
-          showArrow
-          :disabled="status === 'edit'"
-          v-model="record.type"
-          @change="update">
-          <a-select-option v-for="(item, index) in materialList" :key="index" :value="item.value">
-            {{ item.name }}
-          </a-select-option>
-        </a-select>
-      </template>
       <template slot="color" slot-scope="text, record">
         <a-select
-          style="width: 120px"
+          style="width: 180px"
           placeholder="请选择颜色"
           allowClear
           showArrow
           v-model="record.color"
-          :disabled="status === 'edit'"
           @change="update">
-          <a-select-option v-for="(item, index) in colorList" :key="index" :value="item.value">
-            {{ item.name }}
+          <a-select-option v-for="(item, index) in record.attributes" :key="index" :value="item.attributeName">
+            {{ item.attributeName }}
           </a-select-option>
         </a-select>
       </template>
       <template slot="pavingLocation" slot-scope="text, record">
-        <a-input v-model="record.pavingLocation" placeholder="请输入铺装位置" @change="update" :max-length="30"/>
+        <a-select
+          style="width: 180px"
+          placeholder="请选择铺装位置"
+          allowClear
+          showArrow
+          v-model="record.pavingLocation"
+          @change="update">
+          <a-select-option v-for="(item, index) in record.pavements" :key="index" :value="item.position">
+            {{ item.positionName }}
+          </a-select-option>
+        </a-select>
       </template>
       <template slot="isMeasure" slot-scope="text, record">
         <a-switch checked-children="是" un-checked-children="否" v-model="record.isMeasure" />
@@ -124,22 +106,22 @@
       scopedSlots: { customRender: 'areas' },
     },
     {
-      title: '铺装位置',
-      align:'center',
-      width: 140,
-      scopedSlots: { customRender: 'pavingLocation' },
-    },
-    {
       title: '颜色*',
       align:'center',
-      width: 140,
+      width: 200,
       scopedSlots: { customRender: 'color' },
     },
     {
-      title: '材料类型',
+      title: '铺装位置',
       align:'center',
       width: 200,
-      scopedSlots: { customRender: 'type' },
+      scopedSlots: { customRender: 'pavingLocation' },
+    },
+    {
+      title: '材料标识',
+      align:'center',
+      width: 200,
+      scopedSlots: { customRender: 'priceSigns' },
     },
     {
       title: '是否测量',
@@ -207,36 +189,42 @@
         columns: columnX,
         dataList: [],
         areaList: [],
-        colorList: [],
+        positionList:[],
+        pavements:[],
         materialList:[],
+        colorList:[],
         customerId:'',
         materialId:'',
         addType:'',
         id:'',
-        record:[],
         status:'',
+        areaName:'',
+        addRelationId:'',
       }
     },
     methods: {
-      show (customerId,list,type) {
+      show (ids,list,type) {
         this.addType = type
-        this.customerId = customerId
-        this.finalPrice = list[0].salePrice
-        this.materialId = list[0].id
+        if (type === '1087-40') {
+          this.addRelationId = ids.packageId
+        }
+        this.customerId = ids.customerId
         this.visible = true
         this.dataList = deepClone(list)
+        console.log(this.dataList)
         this.getCode()
       },
-      edit (list,type,record,status) {
+      edit (ids,list,type,record,status) {
         this.addType = type
-        this.finalPrice = list[0].salePrice
-        this.materialId = list[0].id
+        if (type === '1087-40') {
+          this.addRelationId = ids.packageId
+        }
         this.customerId = record.customerId
         this.id = record.id
+        this.areaName = record.areaName
         this.visible = true
         this.status = status
-        this.dataList = [record]
-
+        this.dataList = deepClone(list)
         this.getCode()
       },
       getCode() {
@@ -244,8 +232,8 @@
           typeList: ['1086','1089']
         }
         this.$getCodesList(params, res => {
-          this.areaList = res['1086'] || [] // 性别
-          this.materialList = res['1089'] || [] // 性别
+          this.areaList = res['1086'] || [] // 所属区域
+          this.materialList = res['1089'] || [] // 材料类型
         })
       },
       update() {
@@ -254,18 +242,20 @@
         //   this.$forceUpdate()
         // },1000)
       },
+      getColorList(){
+
+      },
       handleDelete(index) {
         this.dataList.splice(index,1)
       },
       handleSubmit () {
-        if (this.status){
+        if (this.status === 'edit'){
           this.dataList.forEach(el => {
             el.customerId = this.customerId
+            el.addRelationId = this.addRelationId
             el.addType = this.addType
-            el.materialId = this.materialId
-            el.finalPrice = this.finalPrice
             el.id = this.id
-          } )
+          })
           this.save(this.dataList)
         }else {
           let flag = true
@@ -278,18 +268,26 @@
               flag = false
               break
             }
+            if(!this.dataList[i].color?.length) {
+              this.$notification.warning({
+                message: '提示',
+                description: `第${i + 1}项，请选择颜色！！！`
+              })
+              flag = false
+              break
+            }
           }
           this.dataList.forEach(el => {
-            el.customerId = this.customerId
-            el.addType = this.addType
-            el.materialId = this.materialId
-            el.finalPrice = this.finalPrice
-            el.id = ''
-          } )
+              el.customerId = this.customerId
+              el.addRelationId = this.addRelationId
+              el.addType = this.addType
+              el.id = ''
+          })
           if(flag) this.save(this.dataList)
         }
       },
       save(data){
+        console.log(data)
         this.$post({
           url: this.$api.customInfo.chooseMaterialInfo.edit,
           data

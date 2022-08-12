@@ -38,7 +38,7 @@
         </a-col>
       </template>
       <template slot="$operate">
-        <a-button type="primary" icon="plus" @click="$refs.createModal.add(queryParam.type)">新建</a-button>
+        <a-button type="primary" icon="plus" v-if="actionAuth.includes('Complaint.Create')" @click="$refs.createModal.add(queryParam.type)">新建</a-button>
         <a-tabs default-active-key="0" v-model="value" @change="changeTabs">
           <a-tab-pane v-for="(item, index) in stateList" :key="index" :tab="item.name" :value="item.value"></a-tab-pane>
         </a-tabs>
@@ -54,20 +54,15 @@
         <ellipsis tooltip :length="20">{{ text }}</ellipsis>
       </template>
       <span slot="action" slot-scope="text, record">
-        <template v-if="!value">
+        <template v-if="!value && actionAuth.includes('Complaint.Modify')">
           <a @click="$refs.createModal.edit(record,'edit','1071-10')">编辑</a>
-          <a-divider type="vertical"/>
-          <a @click="$refs.DispatchOrder.edit(record,'edit')">派单</a>
         </template>
-        <template v-else>
+        <template v-else-if="actionAuth.includes('Complaint.Detail')">
           <a @click="$refs.createModal.edit(record,'detail')">详情</a>
-          <a-divider type="vertical"/>
-          <a @click="$refs.History.show(record)">历史记录</a>
         </template>
       </span>
     </list-page>
     <action-modal ref="createModal" :codeType="codeType" @getCodeList="getCodeList" @ok="handleOk"/>
-    <dispatch-order ref="DispatchOrder" @ok="handleOk"></dispatch-order>
     <history ref="History" @ok="handleOk"></history>
   </div>
 </template>
@@ -81,7 +76,6 @@
   import { dateFormatString, defaultErrorMessage } from '@/utils/common'
   import { defaultTableColumns } from '@/components/ListPage/_utils'
   import { deepClone } from '@/utils/util'
-  import DispatchOrder from '@/pages/customer-service-manage/complaint-record/modules/DispatchOrder'
   import History from '@/pages/customer-service-manage/complaint-record/modules/History'
 
 
@@ -89,7 +83,6 @@
     name: 'TableList',
     components: {
       History,
-      DispatchOrder,
       ListPage,
       ActionModal,
       Ellipsis
@@ -117,6 +110,10 @@
             scopedSlots: {
               customRender: 'customerName'
             }
+          },
+          {
+            title: '客户类型',
+            dataIndex: 'employeeRole',
           },
           {
             title: '地址',
@@ -216,23 +213,18 @@
       }
     },
     created () {
-      // this.$store.dispatch('GetActionAuth').then(res => {
-      //   const arr = []
-      //   res.forEach(item => {
-      //     arr.push(item.key)
-      //   })
-      //   this.actionAuth = arr
-      // })
+      this.$store.dispatch('GetActionAuth').then(res => {
+        const arr = []
+        res.forEach(item => {
+          arr.push(item.key)
+        })
+        this.actionAuth = arr
+      })
       this.isCompleted = false
     },
     methods: {
       changeTabs(value) {
         this.value = value
-        // if (value === 0){
-        //   this.isCompleted = false
-        // }else {
-        //   this.isCompleted = true
-        // }
         this.handleOk()
         this.$forceUpdate()
       },
@@ -245,11 +237,11 @@
       },
       getCodeList() {
         const params = {
-          typeList: ['1071','1051','1044']
+          typeList: ['1071','1072','1044']
         }
         this.$getCodesList(params, res => {
           this.codeType.serviceType = res['1071'] || [] // 客服类型
-          this.codeType.complaintType = res['1051'] || [] // 投诉类别
+          this.codeType.complaintType = res['1072'] || [] // 投诉类别
           this.codeType.complaintSource = res['1044'] || [] // 投诉来源
         })
       },

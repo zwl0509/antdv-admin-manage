@@ -37,19 +37,19 @@
             :columns="columns"
             :request-url="requestUrl"
             :query-params="queryParam"
-            :scroll="{ x: 2200,y: 400 }"
+            :scroll="{ x: 3200,y: 400 }"
             :rowSelection="{ fixed: true, columnWidth: 40, selectedRowKeys: selectedRowKeys, onChange: onChange, onSelect: onSelect, onSelectAll: onSelectAll}">
             <template slot="$operate">
               <span>
                 <template v-if="!tabIndex">
-                  <a-button type="primary" @click="$refs.SelectMaterial.show(queryParam.customerId,'1087-20')">手动选材</a-button>
-                  <a-button type="primary" @click="$refs.SelectMaterial.show(queryParam.customerId,'1087-30')">活动选材</a-button>
-                  <a-button type="primary" @click="$refs.SelectMaterial.show(queryParam.customerId,'1087-40')">主材包选材</a-button>
-<!--                  <a-button v-if="selectedRowKeys.length" type="primary">批量更换</a-button>-->
-                  <a-button v-if="selectedRowKeys.length" type="primary" @click="handleConfirm(selectedRowKeys)">批量确认</a-button>
+                  <a-button type="primary" v-if="actionAuth.includes('MaterialSelect.ManualSelect')" @click="$refs.SelectMaterial.show(queryParam.customerId,'1087-20')">手动选材</a-button>
+                  <a-button type="primary" v-if="actionAuth.includes('MaterialSelect.ActivitySelect') && this.isPromotionCustomer===true" @click="$refs.ActivitySelect.show(queryParam.customerId,'1087-30')">活动选材</a-button>
+                  <a-button type="primary" v-if="actionAuth.includes('MaterialSelect.MainPackageSelect') && this.isPackageCustomer===true" @click="$refs.PackageSelect.show(queryParam.customerId,'1087-40')">主材包选材</a-button>
+                  <a-button v-if="selectedRowKeys.length && actionAuth.includes('MaterialSelect.BatchConfirm')" type="primary" @click="handleConfirm(selectedRowKeys)">批量确认</a-button>
                 </template>
                 <template v-else>
-                  <a-button v-if="selectedRowKeys.length" type="primary"@click="handleReset(selectedRowKeys)">批量重置</a-button>
+                  <a-button type="primary" v-if="actionAuth.includes('MaterialSelect.MainPackageSelect')" @click="uploadData(queryParam.customerId)">一键导入材料</a-button>
+                  <a-button v-if="selectedRowKeys.length && actionAuth.includes('MaterialSelect.BatchReset')" type="primary"@click="handleReset(selectedRowKeys)">批量重置</a-button>
                 </template>
                 <a-alert style="margin-bottom: 16px">
                   <template slot="message">
@@ -67,18 +67,18 @@
             </template>
             <span slot="action" slot-scope="text, record">
               <template v-if="!tabIndex">
-                <a @click="$refs.ModifyMaterial.show(record)">编辑</a>
+                <a v-if="actionAuth.includes('MaterialSelect.Modify')" @click="$refs.ModifyMaterial.show(record)">编辑</a>
                 <a-divider type="vertical" />
-                <a @click="handleEdit(record)">更换</a>
+                <a v-if="actionAuth.includes('MaterialSelect.Replace')" @click="handleEdit(record)">更换</a>
                 <a-divider type="vertical" />
-                <a @click="handleConfirm([record.id])">确认</a>
+                <a v-if="actionAuth.includes('MaterialSelect.Confirm')" @click="handleConfirm([record.id])">确认</a>
                 <a-divider type="vertical" />
-                <a-popconfirm title="是否要删除此行？" @confirm="handleSub([record.id])">
+                <a-popconfirm title="是否要删除此行？" v-if="actionAuth.includes('MaterialSelect.Delete')" @confirm="handleSub([record.id])">
                   <a class="ant-btn-background-ghost ant-btn-danger">删除</a>
                 </a-popconfirm>
               </template>
               <template v-else>
-                <a @click="handleReset([record.id])">重置</a>
+                <a v-if="actionAuth.includes('MaterialSelect.Reset')" @click="handleReset([record.id])">重置</a>
               </template>
             </span>
           </list-pages>
@@ -89,6 +89,10 @@
     <modify-material ref="ModifyMaterial" @ok="refresh"></modify-material>
     <!-- 选材料 -->
     <select-material ref="SelectMaterial" @ok="refresh"></select-material>
+    <!-- 选材料 -->
+    <package-select ref="PackageSelect" @ok="refresh"></package-select>
+    <!-- 选材料 -->
+    <activity-select ref="ActivitySelect" @ok="refresh"></activity-select>
     <!-- 更换方式 -->
     <replace ref="Replace" @ok="refresh"></replace>
   </a-modal>
@@ -124,8 +128,8 @@
       dataIndex:'materialCode',
     },
     {
-      title: '材料类型',
-      dataIndex:'typeName',
+      title: '铺装位置',
+      dataIndex:'pavingLocationName',
     },
     {
       title: '添加方式',
@@ -153,11 +157,7 @@
     },
     {
       title: '材料颜色',
-      dataIndex:'colorName',
-    },
-    {
-      title: '铺装位置',
-      dataIndex:'pavingLocation',
+      dataIndex:'color',
     },
     {
       title: '类别系列',
@@ -197,10 +197,13 @@
   import ModifyMaterial from './ModifyMaterial.vue'
   import SelectMaterial from './SelectMaterial.vue'
   import Replace from './Replace'
-
+  import PackageSelect from './PackageSelect'
+  import ActivitySelect from './ActivitySelect'
   export default {
     name: 'ActionModal',
     components: {
+      ActivitySelect,
+      PackageSelect,
       STree,
       ListPages,
       Ellipsis,
@@ -239,10 +242,19 @@
         tabList: [{value: 0 , name: '待确认'},{value: 1 , name: '已确认'}],
         customerId :'',
         selectList:[],
-        area:''
+        area:'',
+        isPackageCustomer: false,
+        isPromotionCustomer: false
       }
     },
     created() {
+      this.$store.dispatch('GetActionAuth').then(res => {
+        const arr = []
+        res.forEach(item => {
+          arr.push(item.key)
+        })
+        this.actionAuth = arr
+      })
       // 选材添加方式
       this.$getCodeList('1087', res => {
         this.selectList = res
@@ -250,6 +262,9 @@
     },
     methods: {
       show (record) {
+        console.log(record)
+        this.isPackageCustomer= record.isPackageCustomer
+        this.isPromotionCustomer = record.isPromotionCustomer
         this.queryParam.customerId = record.id
         this.visible = true
         this.columns = columnX
@@ -275,6 +290,22 @@
             })
             this.refresh()
           }).catch(err => defaultErrorMessage(err, labels.DELETE_FAIL))
+          .finally(() => { this.loading = false })
+      },
+      // 上传材料数据
+      uploadData (customerId) {
+        this.loading = true
+        this.$put({
+          url: this.$api.customInfo.chooseMaterialInfo.import,
+          params: { customerId },
+        })
+          .then(res => {
+            this.$notification.success({
+              message: labels.OPERATE_SUCCESS,
+              description: res.message || ''
+            })
+            this.refresh()
+          }).catch(err => defaultErrorMessage(err, labels.OPERATE_FAIL))
           .finally(() => { this.loading = false })
       },
       handleConfirm(ids){

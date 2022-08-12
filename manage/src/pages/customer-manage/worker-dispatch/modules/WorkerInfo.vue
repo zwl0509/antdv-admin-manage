@@ -19,7 +19,8 @@
               label="工人头像"
               :labelCol="labelCol"
               :wrapperCol="wrapperCol">
-              <img v-if="imageUrl" :src="imageUrl" alt="avatar" style="width: 78px;height: 78px" />
+              <img v-if="pictureUrl" :src="pictureUrl" alt="avatar" style="width: 78px;height: 78px" />
+              <img v-else :src="require('@/assets/images/worker-picture.png')" alt="avatar" style="width: 78px;height: 78px" />
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
@@ -28,16 +29,18 @@
               label="验证头像"
               :labelCol="labelCol"
               :wrapperCol="wrapperCol">
+              <img v-if="imageUrl" :src="imageUrl" alt="avatar" style="width: 78px;height: 78px" />
               <a-upload
                 list-type="picture-card"
                 class="avatar-uploader"
+                :disabled="status === 'detail'"
                 :show-upload-list="false"
+                v-else
                 :customRequest="uploadImage"
                 accept="image/jpeg,image/jpg,image/png"
                 v-decorator="['attachIds']"
               >
-                <img v-if="imageUrl" :src="imageUrl" alt="avatar" />
-                <div class="upload-box" v-else>
+                <div class="upload-box">
                   <a-icon :type="loading ? 'loading' : 'plus'"/>
                   <div class="ant-upload-text">
                     上传
@@ -99,6 +102,9 @@
         </a-row>
       </a-form>
     </a-spin>
+    <template slot="footer" v-if="this.status === 'detail'">
+      <a-button @click="handleCancel">取消</a-button>
+    </template>
   </a-modal>
 </template>
 
@@ -125,6 +131,7 @@
         id: '',
         workerOrgCode: '',
         imageUrl: '',
+        pictureUrl: '',
         loading: false,
         form: this.$form.createForm(this),
         treeList: [],
@@ -134,6 +141,9 @@
         workerId:'',
         isLeader: false,
         type:'',
+        status:'',
+        attachInfoList:[],
+        attachInfos:[]
       }
     },
     created() {
@@ -143,15 +153,20 @@
     },
     methods: {
       maxLenValidator,regularCheck,
-      add (record) {
-        const { form: { setFieldsValue } } = this
+      add (attachInfos,record,status) {
+
         this.form.resetFields()
         this.visible = true
+        this.status = status
         this.customerId = record.customerId
         this.workerId = record.workerId
         this.isLeader = record.isLeader
         this.type = record.type
         this.id = record.id
+        this.getDetail(record,attachInfos)
+      },
+      getDetail(record,attachInfos){
+        const { form: { setFieldsValue } } = this
         const data = {
           type: record.type,
           workerName: record.workerName,
@@ -159,6 +174,22 @@
           idCard: record.idCard,
           bankAccount: record.bankAccount,
         }
+        this.attachInfoList = record.workerPicture
+        if (this.attachInfoList.length) {
+          this.pictureUrl  = this.attachInfoList[0].path
+          const arr = []
+          arr.push(this.attachInfoList[0].id)
+          this.attachIds = arr
+        }
+        this.attachInfos = attachInfos
+        if (this.attachInfos.length) {
+          this.imageUrl  = this.attachInfos[0].path
+          const arr = []
+          arr.push(this.attachInfos[0].id)
+          this.attachIds = arr
+        }
+        delete record.attachInfoList
+        delete this.attachInfos
         this.$nextTick(() => {
           setFieldsValue(pick(Object.assign({}, data), Object.keys(this.form.fieldsStore.fieldsMeta)))
         })
@@ -258,6 +289,7 @@
       handleCancel () {
         // 重置表单数据
         this.imageUrl= ''
+        this.pictureUrl= ''
         this.form.resetFields()
         this.confirmLoading = false
         this.visible = false

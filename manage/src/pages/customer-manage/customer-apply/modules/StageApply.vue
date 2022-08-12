@@ -277,6 +277,10 @@
               }
             })
           }
+          // 过滤
+          const filterList = ['1033-70','1033-90']
+          const newList = this.customerTypeList.filter(item=> { return !filterList.includes(item.value) })
+          this.customerTypeList = newList
           this.status = this.customerTypeList[0].value
           this.getInitSkip(this.customerTypeList[0].value)
         })
@@ -317,9 +321,10 @@
       // 获取设计师数据
       getDesignerList(code) {
         const data = {
-          positionCode: code,
           currentPage: 0,
-          pageSize: 0
+          pageSize: 0,
+          organizationId: this.$store.state.user.info.orgId,
+          positionCode: code,
         }
         this.$post({
           url: this.$api.employeeManage.employeeInfo.getEasyList,

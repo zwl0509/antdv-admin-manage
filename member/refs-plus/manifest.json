@@ -1,0 +1,286 @@
+{
+    "name" : "红蚂蚁+",
+    "appid" : "__UNI__4BC4660",
+    "description" : "",
+    "versionName" : "1.4.3",
+    "versionCode" : 101,
+    "transformPx" : false,
+    "app-plus" : {
+        "compatible" : {
+            "ignoreVersion" : true //true表示忽略版本检查提示框，HBuilderX1.9.0及以上版本支持
+        },
+        // APP-VUE分包，可提APP升启动速度，2.7.12开始支持，兼容微信小程序分包方案，默认关闭
+        "optimization" : {
+            "subPackages" : true
+        },
+        "safearea" : {
+            "bottom" : {
+                "offset" : "none"
+            }
+        },
+        "privacy" : {
+            "prompt" : "template",
+            "template" : {
+                "title" : "服务协议和隐私政策",
+                "message" : "感谢您选择红蚂蚁 APP！我们非常重视您的个人信息和隐私保护。为了更好地保障您的个人权益，在您使用我们产品前，请务必审慎阅读<a href=\"http://222.92.142.228:9000/h5/#/pages/mine/about-us/privacy\">《隐私政策》</a>和<a href=\"http://222.92.142.228:9000/h5/#/pages/mine/about-us/service-agreement\">《用户协议》</a>内的所有条款，尤其是1.我们对您的个人信息收集/保存等条款，以及您的用户权利等条款；2.约定我们的限制责任、免责条款；您点击‘同意并继续’的行为即表示您已阅读完毕并同意以上协议内容，开始使用我们的产品和服务！",
+                "buttonAccept" : "同意并继续",
+                "buttonRefuse" : "退出应用"
+            }
+        },
+        "splashscreen" : {
+            "alwaysShowBeforeRender" : true,
+            "waiting" : true,
+            "autoclose" : false,
+            "delay" : 0
+        },
+        "usingComponents" : true,
+        "nvueCompiler" : "uni-app",
+        "compilerVersion" : 3,
+        "modules" : {
+            "Maps" : {},
+            "Geolocation" : {},
+            "Push" : {}
+        },
+        "distribute" : {
+            "android" : {
+                "permissions" : [
+                    "<uses-feature android:name=\"android.hardware.camera\"/>",
+                    "<uses-feature android:name=\"android.hardware.camera.autofocus\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_COARSE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_FINE_LOCATION\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.ACCESS_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>",
+                    "<uses-permission android:name=\"android.permission.CALL_PHONE\"/>",
+                    "<uses-permission android:name=\"android.permission.CAMERA\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_NETWORK_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.CHANGE_WIFI_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.FLASHLIGHT\"/>",
+                    "<uses-permission android:name=\"android.permission.GET_ACCOUNTS\"/>",
+                    "<uses-permission android:name=\"android.permission.INTERNET\"/>",
+                    "<uses-permission android:name=\"android.permission.MODIFY_AUDIO_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.MOUNT_UNMOUNT_FILESYSTEMS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_LOGS\"/>",
+                    "<uses-permission android:name=\"android.permission.READ_PHONE_STATE\"/>",
+                    "<uses-permission android:name=\"android.permission.RECORD_AUDIO\"/>",
+                    "<uses-permission android:name=\"android.permission.VIBRATE\"/>",
+                    "<uses-permission android:name=\"android.permission.WAKE_LOCK\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_CONTACTS\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_EXTERNAL_STORAGE\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_SYNC_SETTINGS\"/>",
+                    "<uses-permission android:name=\"android.permission.WRITE_USER_DICTIONARY\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH\"/>",
+                    "<uses-permission android:name=\"android.permission.BLUETOOTH_ADMIN\"/>"
+                ],
+                "abiFilters" : [ "armeabi-v7a", "arm64-v8a", "x86" ],
+                "schemes" : "",
+                "minSdkVersion" : 21
+            },
+            "ios" : {
+                "capabilities" : {
+                    "entitlements" : {
+                        "com.apple.developer.associated-domains" : []
+                    }
+                },
+                "privacyDescription" : {
+                    "NSPhotoLibraryUsageDescription" : "允许\"红蚂蚁\"访问您的相册，以便于您上传图片、修改个人信息",
+                    "NSPhotoLibraryAddUsageDescription" : "允许\"红蚂蚁\"获取您的相册权限，上传头像",
+                    "NSCameraUsageDescription" : "允许\"红蚂蚁\"获取您的摄像头权限，上传头像",
+                    "NSLocationWhenInUseUsageDescription" : "允许\"红蚂蚁\"获取您的地理位置，以便为您提供当前位置信息",
+                    "NSLocationAlwaysUsageDescription" : "允许\"红蚂蚁\"获取您的地理位置，以便为您持续提供当前位置信息",
+                    "NSLocationAlwaysAndWhenInUseUsageDescription" : "允许\"红蚂蚁\"获取您的地理位置，以便为您提供当前位置信息",
+                    "NSContactsUsageDescription" : "该应用需要读取你的通讯录，以便平台与你联系"
+                },
+                "dSYMs" : false
+            },
+            "sdkConfigs" : {
+                "ad" : {},
+                "push" : {
+                    "unipush" : {}
+                },
+                "payment" : {
+                    "weixin" : {
+                        "__platform__" : [ "ios", "android" ],
+                        "appid" : "wx79812fef6a3bcabc",
+                        "UniversalLinks" : "https://www.uicbs.com/uni-universallinks/__UNI__2B97DDC"
+                    },
+                    "alipay" : {
+                        "__platform__" : [ "ios", "android" ]
+                    }
+                },
+                "share" : {
+                    "weixin" : {
+                        "appid" : "wx79812fef6a3bcabc",
+                        "UniversalLinks" : "https://www.uicbs.com/uni-universallinks/__UNI__2B97DDC"
+                    }
+                },
+                "speech" : {
+                    "ifly" : {}
+                },
+                "geolocation" : {
+                    "system" : {
+                        "__platform__" : [ "ios", "android" ]
+                    },
+                    "amap" : {
+                        "__platform__" : [ "ios", "android" ],
+                        "appkey_ios" : "df2e355d22e76bb6ca1cadd14a7f804e",
+                        "appkey_android" : "3cbfcae4cb9152d45163abe1028ab774"
+                    }
+                },
+                "maps" : {
+                    "amap" : {
+                        "appkey_ios" : "df2e355d22e76bb6ca1cadd14a7f804e",
+                        "appkey_android" : "3cbfcae4cb9152d45163abe1028ab774"
+                    }
+                },
+                "oauth" : {}
+            },
+            "icons" : {
+                "android" : {
+                    "hdpi" : "unpackage/res/icons/72x72.png",
+                    "xhdpi" : "unpackage/res/icons/96x96.png",
+                    "xxhdpi" : "unpackage/res/icons/144x144.png",
+                    "xxxhdpi" : "unpackage/res/icons/192x192.png"
+                },
+                "ios" : {
+                    "appstore" : "unpackage/res/icons/1024x1024.png",
+                    "ipad" : {
+                        "app" : "unpackage/res/icons/76x76.png",
+                        "app@2x" : "unpackage/res/icons/152x152.png",
+                        "notification" : "unpackage/res/icons/20x20.png",
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "proapp@2x" : "unpackage/res/icons/167x167.png",
+                        "settings" : "unpackage/res/icons/29x29.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "spotlight" : "unpackage/res/icons/40x40.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png"
+                    },
+                    "iphone" : {
+                        "notification@2x" : "unpackage/res/icons/40x40.png",
+                        "app@2x" : "unpackage/res/icons/120x120.png",
+                        "app@3x" : "unpackage/res/icons/180x180.png",
+                        "spotlight@2x" : "unpackage/res/icons/80x80.png",
+                        "spotlight@3x" : "unpackage/res/icons/120x120.png",
+                        "settings@2x" : "unpackage/res/icons/58x58.png",
+                        "settings@3x" : "unpackage/res/icons/87x87.png",
+                        "notification@3x" : "unpackage/res/icons/60x60.png"
+                    }
+                }
+            },
+            "splashscreen" : {
+                "androidStyle" : "common",
+                "android" : {
+                    "hdpi" : "unpackage/splash/480_762.png",
+                    "xhdpi" : "unpackage/splash/720_1242.png",
+                    "xxhdpi" : "unpackage/splash/1080_1882.png"
+                },
+                "useOriginalMsgbox" : true
+            }
+        },
+        "uniStatistics" : {
+            "enable" : true
+        },
+        "nativePlugins" : {
+            "File_Choose" : {
+                "__plugin_info__" : {
+                    "name" : "File_Choose",
+                    "description" : "",
+                    "platforms" : "Android",
+                    "url" : "",
+                    "android_package_name" : "",
+                    "ios_bundle_id" : "",
+                    "isCloud" : false,
+                    "bought" : -1,
+                    "pid" : "",
+                    "parameters" : {}
+                }
+            },
+            "WH-WatermarkPhoto" : {
+                "__plugin_info__" : {
+                    "name" : "水印相机",
+                    "description" : "生成水印照片,可保存到相册,可随意拖动水印",
+                    "platforms" : "Android,iOS",
+                    "url" : "https://ext.dcloud.net.cn/plugin?id=5266",
+                    "android_package_name" : "com.redant.business",
+                    "ios_bundle_id" : "com.ant.erp",
+                    "isCloud" : true,
+                    "bought" : 1,
+                    "pid" : "5266",
+                    "parameters" : {}
+                }
+            }
+        }
+    },
+    "quickapp" : {},
+    "mp-weixin" : {
+        "appid" : "",
+        "setting" : {
+            "urlCheck" : true,
+            "es6" : false,
+            "minified" : true,
+            "postcss" : true
+        },
+        "optimization" : {
+            "subPackages" : true
+        },
+        "usingComponents" : true,
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-alipay" : {
+        "usingComponents" : true,
+        "component2" : true,
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-qq" : {
+        "optimization" : {
+            "subPackages" : true
+        },
+        "appid" : "",
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-baidu" : {
+        "usingComponents" : true,
+        "appid" : "",
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "mp-toutiao" : {
+        "usingComponents" : true,
+        "appid" : "",
+        "uniStatistics" : {
+            "enable" : true
+        }
+    },
+    "h5" : {
+        "template" : "",
+        "router" : {
+            "mode" : "history",
+            "base" : "./"
+        },
+        "optimization" : {
+            "treeShaking" : {
+                "enable" : false
+            }
+        },
+        "title" : "uView UI",
+        "uniStatistics" : {
+            "enable" : true
+        },
+        "devServer" : {
+            "https" : false
+        }
+    },
+    "uniStatistics" : {
+        "enable" : true
+    },
+    "_spaceID" : "db8269f2-07d7-437d-9597-5c0f4c813df9"
+}

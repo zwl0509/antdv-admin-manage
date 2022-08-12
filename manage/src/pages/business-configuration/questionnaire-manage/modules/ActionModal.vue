@@ -45,16 +45,18 @@
         </a-row>
         <a-row :grabbed="48">
           <a-button type="primary" icon="plus" style="margin:10px 0;" @click="questionnaireCreate">新增题目</a-button>
-          <a-table
-            :rowKey="r => (r.id || r.key)"
-            :columns="columns"
-            :pagination="false"
-            :dataSource="dataList"
-            :scroll="{y: 380}">
+          <a-table :rowKey="r => (r.id || r.key)" :columns="columns" :pagination="false" :dataSource="dataList" :scroll="{y: 380}">
             <span slot="serial" slot-scope="text, record, index">{{ index + 1 }}</span>
             <span slot="isSwitch" slot-scope="text">{{ text ? '是' : '否' }}</span>
+            <span slot="ellipsis" slot-scope="text">
+              <ellipsis :length="20" tooltip>{{ text }}</ellipsis>
+            </span>
             <span slot="action" slot-scope="text, record, index">
               <a @click="handleEdit(record, index)">编辑</a>
+              <a-divider type="vertical"/>
+              <a-popconfirm title="是否要删除此行？" @confirm="handleSub(index)">
+                <a class="ant-btn-background-ghost ant-btn-danger">删除</a>
+              </a-popconfirm>
             </span>
           </a-table>
         </a-row>
@@ -68,11 +70,13 @@
 <script>
 import pick from 'lodash.pick'
 import labels from '@/utils/labels'
+  import { Ellipsis } from '@/components'
+
 import QuestionnaireCreate from './QuestionnaireCreate.vue'
 import { defaultErrorMessage, filedIsNull, maxLenValidator,regularCheck2 } from '@/utils/common'
 
 export default {
-  components: { QuestionnaireCreate },
+  components: { QuestionnaireCreate, Ellipsis},
   data () {
     return {
       labelCol: {
@@ -91,26 +95,18 @@ export default {
           scopedSlots: { customRender: 'serial' }
         },
         {
-          title: '是否必填',
-          align: 'center',
-          dataIndex: 'isRequired',
-          scopedSlots: { customRender: 'isSwitch' }
-        },
-        {
-          title: '是否必填',
-          align: 'center',
-          dataIndex: 'isPhoto',
-          scopedSlots: { customRender: 'isSwitch' }
-        },        
-        {
           title: '标题',
           align: 'center',
+          width: 200,
           dataIndex:'questionTitle',
+          scopedSlots: { customRender: 'ellipsis' }
         },
         {
           title: '副标题',
           align: 'center',
+          width: 200,
           dataIndex:'questionSubtitle',
+          scopedSlots: { customRender: 'ellipsis' }
         },
         {
           title: '问题类型',
@@ -118,9 +114,21 @@ export default {
           dataIndex:'questionTypeName',
         },
         {
+          title: '是否必填',
+          align: 'center',
+          dataIndex: 'isRequired',
+          scopedSlots: { customRender: 'isSwitch' }
+        },
+        {
+          title: '是否拍照',
+          align: 'center',
+          dataIndex: 'isPhoto',
+          scopedSlots: { customRender: 'isSwitch' }
+        },  
+        {
           title: '操作',
           align: 'center',
-          width: 80,
+          width: 120,
           scopedSlots: { customRender: 'action' }
 
         }
@@ -190,7 +198,6 @@ export default {
     },
     // 编辑题目
     handleEdit(item,index) {
-      console.log(item)
       this.s_index = index
       this.$refs.QuestionnaireCreate.edit(item)
     },
@@ -201,6 +208,10 @@ export default {
       } else {
         this.$set(this.dataList,this.s_index,item)
       }
+    },
+    // 删除
+    handleSub(index) {
+      this.dataList.splice(index, 1)
     },
     handleSubmit () {
       const { form: { validateFields } } = this

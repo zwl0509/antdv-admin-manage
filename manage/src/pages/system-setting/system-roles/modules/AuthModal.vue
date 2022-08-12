@@ -18,6 +18,9 @@
         <a-tab-pane key="2" tab="用户app权限" forceRender v-if="batch || activeKey == '2'">
           <app-auth ref="AppAuth" />
         </a-tab-pane>
+        <a-tab-pane key="3" tab="材料分类权限" forceRender v-if="batch || activeKey == '3'">
+          <material-classify ref="MaterialClassify" />
+        </a-tab-pane>
       </a-tabs>
     </a-spin>
   </a-modal>
@@ -27,10 +30,12 @@
 import labels from '@/utils/labels'
 import AppAuth from './AppAuth'
 import SystemAuth from './SystemAuth'
+import MaterialClassify from '@/pages/system-setting/system-roles/modules/MaterialClassify'
 import { defaultErrorMessage } from '@/utils/common'
 export default {
   components: {
     SystemAuth,
+    MaterialClassify,
     AppAuth,
   },
   data() {
@@ -45,9 +50,6 @@ export default {
     }
   },
   methods: {
-    change(e) {
-      console.log(e)
-    },
     show(record, index, batch, targetId) {
       console.log(record.id, index, batch, targetId)
       this.targetId = targetId
@@ -55,7 +57,7 @@ export default {
       this.batch = batch
       this.visible = true
       this.id = record.id
-      const arr = [this.getSiteMapAuth()]
+      const arr = [this.getSiteMapAuth(), this.getVision(record.id)]
       Promise.all(arr)
         .catch((err) => defaultErrorMessage(err, labels.GET_DATA_FAIL))
         .finally(() => {
@@ -76,10 +78,26 @@ export default {
         this.$refs.SystemAuth && this.$refs.SystemAuth.show(res?.systemAuthList || [])
       })
     },
+    getVision(id) {
+      this.confirmLoading = true
+      return this.$get({
+        url: this.$api.auth.getView,
+        params: { id },
+        needResponse: true,
+      }).then((res) => {
+        this.$refs.MaterialClassify && this.$refs.MaterialClassify.setData(res?.result.materialClassAuthority || [])
+      })
+    },
     handleSubmit() {
+      this.confirmLoading = true
       let data = {}
       if (this.batch) {
         data = {
+          materialClassAuthorityDTO: {
+            id: this.id,
+            ids: this.$refs.MaterialClassify.getData(),
+            targetType:'roles'
+          },
           sitemapActionAuthorityEditDTOS: this.$refs.SystemAuth.getData(),
           sitemapActionAuthorityEditAppDTO: this.$refs.AppAuth.getData(),
           targetId: this.id,
@@ -105,11 +123,10 @@ export default {
     // 保存
     save(data) {
       this.$post({
-        url: this.$api.auth.menuAuthEdit,
+        url:  this.batch ? this.$api.auth.menuAuthEdit : this.$api.auth.siteMapActionAuthorityBatch,
         data,
         needResponse: true,
-      })
-        .then((res) => {
+      }).then((res) => {
           this.handleCancel()
           this.$emit('ok')
           this.$notification.success({
@@ -118,9 +135,7 @@ export default {
           })
         })
         .catch((err) => defaultErrorMessage(err, labels.SAVE_FAIL))
-        .finally(() => {
-          this.confirmLoading = false
-        })
+        .finally(() => { this.confirmLoading = false })
     },
     handleCancel() {
       this.visible = false

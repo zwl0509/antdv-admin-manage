@@ -49,11 +49,13 @@ import {
   Transfer,
   message,
   notification,
+  Timeline,
   Pagination, TreeSelect, Cascader, Collapse, Descriptions, Empty, Rate
 } from 'ant-design-vue'
 import RangePicker from 'ant-design-vue/lib/date-picker/RangePicker'
 // import VueCropper from 'vue-cropper'
 
+Vue.use(Timeline)
 Vue.use(Rate)
 Vue.use(ConfigProvider)
 Vue.use(Layout)

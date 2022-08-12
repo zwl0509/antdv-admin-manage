@@ -12,7 +12,7 @@
     <a-spin :spinning="confirmLoading">
       <a-collapse v-model="activeKey" expand-icon-position="right" accordion>
         <a-collapse-panel key="1" header="客户基本信息" forceRender>
-          <base-info ref="BaseInfo" :type="modal_type"></base-info>
+          <base-info ref="BaseInfo" :type="modal_type" :status="status"></base-info>
         </a-collapse-panel>
         <a-collapse-panel key="2" header="客户其他信息" forceRender>
           <other-info ref="OtherInfo" :type="modal_type"></other-info>

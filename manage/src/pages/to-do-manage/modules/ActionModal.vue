@@ -36,6 +36,7 @@
       <!-- 客户阶段审核 -->
       <stage-apply v-if="modal_type && modal_type == '1056-40' && auditStatus == '1076-30'" ref="StageApply"></stage-apply>
       <!-- 问卷调查 -->
+      
     </a-spin>
     <template slot="footer">
       <div>
@@ -124,6 +125,7 @@
         applyRelationId: '',
         stageButtonList: [],
         auditStatus: '', // 移交后走流程阶段
+        constructionContractId: '', // 施工合同ID
       }
     },
     methods: {
@@ -132,7 +134,7 @@
         this.id = record.applyId || ''
         this.auditStatus = record.auditStatus
         this.modal_type = record.applyType
-        this.applyRelationId = record.applyRelationId || ''
+        this.applyRelationId = record.applyRelationId || record.customerId || ''
         !record.isView && this.getStatus(record)
         this.$emit('getCodeList')
         this.getDetail(record)
@@ -155,10 +157,11 @@
         this.confirmLoading = true
         this.$get({
           url: this.$api.customInfo.resourceCustomer.getDetail,
-          params: { id: record.applyRelationId }
+          params: { id: record.applyRelationId || record.customerId }
         }).then((res) =>{
           const data = { ...res }
           this.applyRelationId = data.id
+          this.constructionContractId = data.constructionContractId
           // 要办理的流程
           this.stageButtonList = data.customerWorkFlowInfo.currentWorkFlowInfos || []
           this.$refs.BaseInfo.setData(data.customerBaseInfo)
@@ -167,6 +170,10 @@
       },
       trackingProcess(id) {
         const item = this.stageButtonList?.find(item=> item.id === id)
+        const row = {
+          id: this.applyRelationId,
+          constructionContractId: this.constructionContractId
+        }
         switch (item.workFlowRelationFormCode) {
           case '1059-10': // 派工表单
             this.$refs.DispatchFrom.show(this.applyRelationId, item)
@@ -177,8 +184,8 @@
           case '1059-30': // 设计表单
             this.$refs.DesignContract.show(this.applyRelationId, item)
             break
-          case '1059-40': // 附件表单
-            this.$refs.SignContractFrom.show(this.applyRelationId,item)
+          case '1059-40': // 施工表单
+            this.$refs.SignContractFrom.show(row, item, '1033-80')
             break
           case '1059-50': // 附件表单
             this.$refs.UploadPic.show(this.applyRelationId, item)
@@ -256,6 +263,7 @@
         this.applyRelationId = ''
         this.stageButtonList = []
         this.auditStatus = ''
+        this.constructionContractId = ''
         this.$refs.BaseInfo.clearInput()
       }
     }

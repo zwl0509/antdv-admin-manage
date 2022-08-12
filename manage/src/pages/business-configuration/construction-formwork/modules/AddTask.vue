@@ -91,8 +91,8 @@
                 <a-select-option
                   v-for="(item, index) in postList"
                   :key="index"
-                  :value="item.id"
-                >{{ item.positionName }}</a-select-option>
+                  :value="item.value"
+                >{{ item.name }}</a-select-option>
               </a-select>
             </a-form-item>
           </a-col>
@@ -133,7 +133,7 @@
               <a-switch 
                 checked-children="是" 
                 un-checked-children="否" 
-                v-decorator="['isOperation',{ valuePropName: 'checked', initialValue: false }]"/>
+                v-decorator="['isOperation',{ valuePropName: 'checked', initialValue: true }]"/>
             </a-form-item>
           </a-col>
         </a-row>
@@ -220,7 +220,7 @@
           params: {id}
         }).then(res => {
             const data = { ...res }
-            console.log(data)
+            this.isRelationSurvey = data.isRelationSurvey
             for (const key in data) {
               if (filedIsNull(data[key])) {
                 delete data[key]
@@ -264,16 +264,9 @@
       // 获取岗位数据
       getPostList() {
         this.confirmLoading = true
-        this.$get({
-          url:this.$api.system.position.getListPage,
-          params: {
-            isLocked: true,
-            currentPage: 0,
-            pageSize: 0
-          }
-        }).then((res)=>{
-          const list = { ...res.rows }
-          this.postList = list || []
+        const params = { typeList: ['1042']  }
+        this.$getCodesList(params, res => {
+          this.postList = res['1042'] || []
         })
       },
       handleSubmit () {

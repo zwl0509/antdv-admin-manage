@@ -30,23 +30,13 @@
             </a-select>
           </a-form-item>
         </a-col>
-        <a-col :md="8" :xs="24" v-if="type == 'add' ">
+        <a-col :md="8" :xs="24" v-if="(type !== 'edit' && type !== 'detail') || info.infoShow">
           <a-form-item label="手机号" :labelCol="labelCol" :wrapperCol="wrapperCol">
             <a-input
               type="number"
               placeholder="请输入手机号"
               autocomplete="off"
-              :disabled="type == 'detail'|| type == 'apply'"
               v-decorator="['mobileNumber', { rules: [{ required: true , message: '客户基础信息,请输入手机号!'}, { validator: (r, v, fun) => regularCheck('mobilePhone', v, fun,'手机号格式错误') }] }]"/>
-          </a-form-item>
-        </a-col>
-        <a-col :md="8" :xs="24" v-else>
-          <a-form-item label="手机号" :labelCol="labelCol" :wrapperCol="wrapperCol">
-            <a-input
-              placeholder="请输入手机号"
-              autocomplete="off"
-              disabled
-              v-decorator="['mobileNumberHide']"/>
           </a-form-item>
         </a-col>
         <a-col :md="8" :xs="24">
@@ -88,8 +78,6 @@
             <a-button type="primary" :disabled="type == 'detail'" @click="selectOrg">选择门店</a-button>
           </a-form-item>
         </a-col> -->
-      </a-row>
-      <a-row :grabbed="48">
         <a-col :md="8" :xs="24">
           <a-form-item label="装修风格" :labelCol="labelCol" :wrapperCol="wrapperCol">
             <a-select allowClear :getPopupContainer=" triggerNode => { return triggerNode.parentNode }" placeholder="请选择装修风格" :disabled="type == 'detail'" v-decorator="['decorationStyle',{ rules : [{ required: true, message: '客户基础信息,请选择装修风格!'}]}]">
@@ -108,6 +96,7 @@
               :options="addressList"
               :fieldNames="{ label: 'name', value: 'id', children: 'children' }"
               placeholder="装修地址"
+              :show-search="{ filterOption }"
               @change="handleAddress"
               v-decorator="['areaIds']"/>
           </a-form-item>
@@ -117,6 +106,7 @@
             <a-select
               placeholder="装修地址(小区)"
               showSearch
+              :filterOption="filterOption"
               :getPopupContainer=" triggerNode => { return triggerNode.parentNode }"
               @search="search"
               :filter-option="false"
@@ -355,6 +345,11 @@
     },
     methods: {
       maxLenValidator, numberValidator,regularCheck,regularCheck2,
+      filterOption(input, option) {
+        return (
+          option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+        )
+      },
       // 获取code数据
       getCodeList(codeType,areaName) {
         this.codeType = codeType

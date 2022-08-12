@@ -21,13 +21,24 @@
             <a-input v-model="queryParam.customerName" autocomplete="off" placeholder="请输入客户名称" :max-length="30"/>
           </a-form-item>
         </a-col>
+        <a-col :md="6" :xs="24">
+          <a-form-item label="装修地址">
+            <a-input v-model="queryParam.finalAddress" autocomplete="off" placeholder="请输入装修地址" :max-length="30"/>
+          </a-form-item>
+        </a-col>
       </template>
+      <template slot="switch" slot-scope="text">
+        <span>{{ !!text? '是' : '否' }}</span>
+      </template>
+      <span slot="ellipsis" slot-scope="text">
+        <ellipsis :length="12" tooltip>{{ text }}</ellipsis>
+      </span>
       <span slot="action" slot-scope="text, record">
-        <template>
+        <template v-if="actionAuth.includes('MaterialSelect.Select')">
           <a @click="$refs.ActionModal.show(record)">客户选材</a>
           <a-divider type="vertical"/>
         </template>
-        <template>
+        <template v-if="actionAuth.includes('MaterialSelect.Delete')">
           <a-popconfirm title="是否要删除此行？" @confirm="handleSub(record)">
             <a class="ant-btn-background-ghost ant-btn-danger">删除</a>
           </a-popconfirm>
@@ -43,6 +54,7 @@ import moment from 'moment'
 import labels from '@/utils/labels'
 import ListPage from '@/components/ListPage'
 import ActionModal from './modules/ActionModal'
+import { Ellipsis } from '@/components'
 import { dateFormatString, defaultErrorMessage } from '@/utils/common'
 import { defaultTableColumns } from '@/components/ListPage/_utils'
 
@@ -50,7 +62,8 @@ export default {
   name: 'TableList',
   components: {
     ActionModal,
-    ListPage
+    ListPage,
+    Ellipsis
   },
   data () {
     return {
@@ -71,7 +84,18 @@ export default {
         {
           title: '客户名称',
           dataIndex: 'customerName',
-          scopedSlots: { customRender: 'infoShow' }
+          scopedSlots: { customRender: 'infoShow' },
+
+        },
+        {
+          title: '是否主材包客户',
+          dataIndex: 'isPackageCustomer',
+          scopedSlots: { customRender: 'switch' }
+        },
+        {
+          title: '是否活动客户',
+          dataIndex: 'isPromotionCustomer',
+          scopedSlots: { customRender: 'switch' }
         },
         {
           title: '性别',
@@ -84,6 +108,12 @@ export default {
         {
           title: '客户类型',
           dataIndex: 'relationshipName'
+        },
+        {
+          title: '客户地址',
+          dataIndex: 'finalAddress',
+          scopedSlots: { customRender: 'ellipsis' }
+
         },
         {
           title: '回单人',

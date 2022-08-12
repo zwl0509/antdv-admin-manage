@@ -152,8 +152,10 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
+      title: '小区',
+      width: 160,
+      dataIndex: 'areaNamePath',
+      scopedSlots: { customRender: 'ellipsis'}
     },
 
     {
@@ -391,9 +393,12 @@
           this.codeType.focusOnType = res['1031'] || []  // 客户重点关注
           this.codeType.trackType = res['1037'] || []  // 跟踪类型
           this.codeType.recordType = res['1038'] || []  // 记录类型
-          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
           this.codeType.stageType = res['1033'] || []  // 客户阶段
           this.codeType.importType = res['1066'] || [] //导入日志类型
+          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
+          const filterList = ['1044-01','1044-04','1044-05','1044-06']
+          const newList =  this.codeType.infoSourceType .filter(item=> { return !filterList.includes(item.value) })
+          this.codeType.infoSourceType = newList
         })
       },
       handleOk () {
@@ -420,7 +425,7 @@
       },
       // 下载模版
       downloadTemplate(){
-        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template.xlsx'
+        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template-first.xlsx'
         const link = document.createElement('a')
         link.style.display = 'none'
         link.href = url

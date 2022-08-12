@@ -135,10 +135,6 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
-    },
-    {
       title: '客户类型',
       dataIndex: 'relationshipName'
     },

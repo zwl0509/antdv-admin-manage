@@ -188,56 +188,14 @@
             </a-select>
           </a-form-item>
         </a-col>
-      </a-row>
-      <a-row>
-        <!-- <a-col :md="24" :xs="24">
-          <a-form-item
-            v-for="(item,index) in list"
-            :key="item"
-            :label="'关联问题'+ (index + 1)"
-            class="col-1-9"
-            :required="false"
-          >
+        <a-col :md="24" :xs="24">
+          <a-form-item label="回访内容" :labelCol="labelCol" :wrapperCol="wrapperCol" class="col-1-9" v-if="value === 2">
             <a-textarea
-              :rows="1"
-              class="question"
-              placeholder="请输入关联问题"
-              autocomplete="off"
-              :disabled="type == 'detail'"
-              v-decorator="['remark' + index, { validateTrigger: ['change', 'blur'], rules: [{ validator: (r, v, fun) => maxLenValidator(r, v, fun, 500) }] }]"/>
-            <div class="icon">
-              <a-icon type="minus-circle" :disabled="type == 'detail'" class="dynamic-delete-button" @click="cancel" v-if="list.length > 1"/>
-              <a-icon type="plus-circle" :disabled="type == 'detail'" class="dynamic-add-button" @click="add" v-if="index === list.length - 1"/>
-            </div>
+              :disabled="type === 'detail'"
+              placeholder="请输入回访内容"
+              v-decorator="['returnVisitContent', {rules: [{ required: true,validator:(r, v, fun)=> maxLenValidator(r, v, fun, 500)}]}]"></a-textarea>
           </a-form-item>
         </a-col>
-        <a-col :md="24" :xs="24">
-          <a-form-item label="投诉内容" class="col-1-9">
-            <a-textarea
-              :rows="3"
-              placeholder="请输入投诉内容"
-              autocomplete="off"
-              :disabled="type == 'detail'"
-              v-decorator="['recordContent', { rules: [{ message: '请输入投诉内容!'}, { validator: (r, v, fun) => maxLenValidator(r, v, fun, 50) }] }]"/>
-          </a-form-item>
-        </a-col>
-        <a-col :md="24" :xs="24">
-          <a-form-item label="备注信息" class="col-1-9">
-            <a-textarea
-              :rows="3"
-              placeholder="请输入备注信息"
-              autocomplete="off"
-              :disabled="type == 'detail'"
-              v-decorator="['remark', { rules: [{ validator: (r, v, fun) => maxLenValidator(r, v, fun, 500) }] }]"/>
-          </a-form-item>
-        </a-col> -->
-      </a-row>
-      <a-row v-if="type === 'detail'">
-        <a-form-item label="二维码" class="col-1-9">
-          <div>
-            <img class="qr-img" :src="qrCode">
-          </div>
-        </a-form-item>
       </a-row>
     </a-form>
     <customer-info ref="CustomerInfo" @getCustomer="getCustomer"></customer-info>
@@ -261,6 +219,10 @@
       type: {
         type: String,
         default: '',
+      },
+      value: {
+        type: Number,
+        default: 1
       },
     },
     data () {

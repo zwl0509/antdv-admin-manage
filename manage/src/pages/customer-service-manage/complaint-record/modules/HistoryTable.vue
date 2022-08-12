@@ -300,13 +300,12 @@
   import { defaultErrorMessage } from '@/utils/common'
   import { Ellipsis } from '@/components'
   import { defaultTableColumns } from '@/components/ListPage/_utils'
-  import DispatchOrder from '@/pages/customer-service-manage/complaint-record/modules/DispatchOrder'
   import json from '@/pages/customer-service-manage/complaint-record/modules/mocks'
   import labels from '@/utils/labels'
   import HistoryDetail from './HistoryDetail'
   export default {
     name:'HistoryTable',
-    components: { HistoryDetail, DispatchOrder,Ellipsis},
+    components: { HistoryDetail, Ellipsis},
     props: {
       type: {
         type: String,
@@ -366,17 +365,18 @@
           this.columns = columns_C
         }
       },
+
       handleClick(record){
         const value = this.value
         this.$refs.HistoryDetail.edit(record,value)
       },
       getCodeList() {
         const params = {
-          typeList: ['1071','1051','1044']
+          typeList: ['1071','1072','1044']
         }
         this.$getCodesList(params, res => {
           this.codeType.serviceType = res['1071'] || [] // 客服类型
-          this.codeType.complaintType = res['1051'] || [] // 投诉类别
+          this.codeType.complaintType = res['1072'] || [] // 投诉类别
           this.codeType.complaintSource = res['1044'] || [] // 投诉来源
         })
       },
@@ -400,10 +400,10 @@
             .finally(() => { this.confirmLoading = false })
         }else{
           this.$get({
-            url: this.$api.customerServiceInfo.getListPage,
-            params: {customerId,type: '1071-30'}
+            url: this.$api.customerServiceInfo.getHistoryList,
+            params: {customerId}
           }).then((res) =>{
-            this.dataList = res.rows || []
+            this.dataList = res || []
           }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
             .finally(() => { this.confirmLoading = false })
         }

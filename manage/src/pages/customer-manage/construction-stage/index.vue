@@ -86,6 +86,18 @@
           <a @click="$refs.EvasionApply.show([record.id],2)">逃单申请</a>
         </template>
         <br/>
+        <template v-if="record.haveConstruction && actionAuth.includes('ConstructionStage.SeeConstructionPlan')">
+          <a @click="$refs.GanttModal.show(record)">查看施工计划</a>
+          <a-divider type="vertical"/>
+        </template>
+        <template v-if="!record.haveConstruction && actionAuth.includes('ConstructionStage.CreateConstructionPlan')">
+          <a @click="$refs.ConstructionPlan.show(record)">生成施工计划</a>
+          <a-divider type="vertical"/>
+        </template>
+        <template v-if="record.haveConstruction && actionAuth.includes('ConstructionStage.StopOrResumeWorkPlan')">
+          <a @click="$refs.ResumeWorkPlan.show(record)">停复工计划</a>
+          <a-divider type="vertical"/>
+        </template>
         <template v-if="actionAuth.includes('ConstructionStage.PatrolRecord')">
           <a @click="$refs.PatrolRecord.show(record)">查看巡检记录</a>
           <a-divider type="vertical" v-if="record.currentWorkFlowInfos.length" />
@@ -114,9 +126,11 @@
     <!-- 施工计划 -->
     <construction-plan ref="ConstructionPlan" @ok="handleOk"></construction-plan>
     <!-- 施工计划图 -->
-    <gantt-modal ref="GanttModal"></gantt-modal>
+    <gantt-modal ref="GanttModal" @ok="handleOk" :actionChildAuth="actionChildAuth"></gantt-modal>
     <!-- 查看巡检记录 -->
-    <patrol-record ref="PatrolRecord"></patrol-record>
+    <patrol-record ref="PatrolRecord" @ok="handleOk" :actionChildAuth="actionChildAuth"></patrol-record>
+    <!-- 停复工列表 -->
+    <resume-work-plan ref="ResumeWorkPlan" @ok="handleOk" :actionChildAuth="actionChildAuth"></resume-work-plan>
   </div>
 </template>
 
@@ -135,10 +149,6 @@
     {
       title: '性别',
       dataIndex: 'genderName'
-    },
-    {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
     },
     {
       title: '客户类型',
@@ -212,6 +222,8 @@
   import ConstructionPlan from '@/pages/customer-manage/design-phase/modules/ConstructionPlan'
   import GanttModal from '@/pages/customer-manage/design-phase/modules/GanttModal'
   import PatrolRecord from '@/pages/customer-manage/construction-stage/modules/PatrolRecord'
+  import ResumeWorkPlan from '@/pages/customer-manage/construction-stage/modules/ResumeWorkPlan'
+
   export default {
     name: 'TableList',
     components: {
@@ -226,7 +238,8 @@
       DesignContract,
       UploadPic,
       SignContractFrom,
-      GanttModal
+      GanttModal,
+      ResumeWorkPlan
     },
     data () {
       return {
@@ -259,6 +272,7 @@
         columns: columnX,
         scroll_x: 2500,
         actionAuth: [],
+        actionChildAuth: [],
         codeType: {
           houseType: [],
           roomType:[],
@@ -283,9 +297,12 @@
     created () {
       this.$store.dispatch('GetActionAuth').then(res => {
         const arr = []
+        const childrenAnth = []
         res.forEach(item => {
           arr.push(item.key)
+          childrenAnth.push(item.key.split('.')[1])
         })
+        this.actionChildAuth = childrenAnth
         this.actionAuth = arr
       })
     },

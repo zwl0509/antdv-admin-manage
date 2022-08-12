@@ -11,9 +11,9 @@
     <a-spin :spinning="confirmLoading">
       <a-collapse v-model="activeKey" expand-icon-position="right" accordion>
         <a-collapse-panel key="1" header="投诉信息" forceRender>
-          <complaint-info ref="ComplaintInfo" :type="type"></complaint-info>
+          <complaint-info ref="ComplaintInfo" :type="type" :value="modal_type"></complaint-info>
         </a-collapse-panel>
-        <a-collapse-panel key="2" header="工单列表" forceRender>
+        <a-collapse-panel key="2" header="工单列表" forceRender @click.native="getCustomer">
           <work-order-list ref="WorkOrderList" :type="type"></work-order-list>
         </a-collapse-panel>
       </a-collapse>
@@ -75,15 +75,28 @@
       edit(record,value ) {
         this.modal_type = value
         this.visible = true
-        this.getDetail(record.id)
+        if (value === 2){
+          this.getDetail(record.csComplaintRecordId,record.returnVisitContent)
+        }else {
+          this.getDetail(record.id,record.returnVisitContent)
+        }
         this.$emit('getCodeList')
         this.$nextTick(() => {
           this.$refs.ComplaintInfo.getCodeList(this.codeType)
           this.$refs.WorkOrderList.getCodeList(this.codeType)
         })
       },
+      getCustomer(){
+        this.$get({
+          url: this.$api.customerServiceInfo.getListPage,
+          params: { customerId:this.customerId , type: '1071-10' }
+        }).then(() =>{
+          this.$refs.WorkOrderList.show(this.customerId)
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
+      },
       // 获取详情
-      getDetail(id) {
+      getDetail(id,returnVisitContent) {
         this.confirmLoading = true
         this.$get({
           url: this.$api.customerServiceInfo.getDetail,
@@ -95,9 +108,10 @@
             recordType.push(item.type)
           })
           data.recordType = recordType
+          data.returnVisitContent = returnVisitContent
           this.id = data.id
           this.$refs.ComplaintInfo.setData(data)
-          this.$refs.WorkOrderList.setData(data.dispatchInfos)
+          this.$refs.WorkOrderList.setHistoryData(data.dispatchInfos)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
           .finally(() => { this.confirmLoading = false })
       },

@@ -9,3 +9,7 @@ $tipColor: #2186d2;
   line-height: 19px;
   color: $primaryColor
 }
+// 上传图片保持纵横比缩放图片
+::v-deep .ant-upload-list-item-thumbnail img {
+  object-fit: contain;
+}

@@ -1,9 +1,9 @@
 <template>
-  <a-modal 
+  <a-modal
     :visible="visible"
     :width="1200"
     :title="modal_title"
-    @ok="handleSubmit" 
+    @ok="handleSubmit"
     @cancel="handleCancel"
     :centered="true"
     :mask-closable="false"
@@ -20,6 +20,7 @@
             :request-url="requestUrl"
             :show-search="false"
             :query-params="queryParam"
+            :pagination="{simple: true}"
             :customRow="leftCustomRow"
             :loadAfterRender="afterLoad">
             <template slot="supplyName" slot-scope="text">
@@ -55,7 +56,7 @@
       </a-row>
     </a-spin>
     <!-- 已选材料 -->
-    <checked-material ref="CheckedMaterial" @ok="handleOk"></checked-material>
+    <common-check ref="CommonCheck" @ok="handleOk"></common-check>
   </a-modal>
 </template>
 
@@ -67,9 +68,12 @@
   import Ellipsis from '@/components/Ellipsis/Ellipsis'
   import CheckedMaterial from './CheckedMaterial.vue'
   import { dateFormatString, defaultErrorMessage } from '@/utils/common'
+  import CommonCheck from './CommonCheck'
+  import { deepClone } from '@/utils/util'
   export default {
     name: 'SelectMaterial',
     components: {
+      CommonCheck,
       STree,
       ListPages,
       Ellipsis,
@@ -80,10 +84,6 @@
         switch (this.modal_type) {
           case '1087-20' :
             return '手动选材'
-          case '1087-30' :
-            return '活动选材'
-          case '1087-40' :
-            return '主材包选材'
           default:
             return ''
         }
@@ -95,7 +95,9 @@
         modal_type: '',
         loading: false,
         // 查询参数
-        queryParam: {},
+        queryParam: {
+          isPickMaterial : true
+        },
         requestUrl: this.$api.basicData.supplyInfo.getListPage,
         columns:[
           {
@@ -117,7 +119,8 @@
           },
         ],
         // 查询参数
-        queryParam2: {},
+        queryParam2: {
+          isPickMaterial : true},
         requestUrl2: this.$api.basicData.materialInfo.getListPage,
         // 表头2
         columns2: [
@@ -141,9 +144,10 @@
           },
           {
             title: '材料编码',
-            dataIndex:'materialCode',
+            dataIndex: 'materialCode',
             width: 220,
           },
+
           {
             title: '材料品牌',
             dataIndex: 'brand'
@@ -176,11 +180,12 @@
     },
     methods: {
       show (customerId,type) {
-        this.customerId = customerId
+        this.queryParam2.customerId = customerId
         this.modal_type = type
         this.visible = true
         this.selectedRowKeys= []
         this.selectedRows= []
+       this.$refs.listPage && this.refresh()
       },
       edit (record,type,status) {
         this.status = status
@@ -189,12 +194,13 @@
         this.visible = true
         this.selectedRowKeys= []
         this.selectedRows= []
+        this.$refs.listPage && this.refresh()
       },
       afterLoad (res) {
         const parentMenu = [
           {
             id: null,
-            supplyClassName: res.rows.supplyClassName,
+            // supplyName: res.rows.supplyName,
             key: 'menuTop',
             children: res.rows.map((item) => {
               item.children = []
@@ -261,7 +267,10 @@
         this.queryParam = {}
       },
       resetSearchForm2 () {
-        this.queryParam2 = { supplyId: this.queryParam2.supplyId }
+        this.queryParam2 = {
+          supplyId: this.queryParam2.supplyId,
+          customerId: this.queryParam2.customerId
+        }
       },
       handleOk() {
         this.$emit('ok')
@@ -271,11 +280,16 @@
         this.$refs.listPage.refresh(true)
       },
       handleSubmit () {
+        const list = this.selectedRows
+        list.forEach(el=>{
+          el.materialId = el.id
+        })
+        const data = deepClone(list)
         if(this.selectedRows?.length) {
           if (this.status){
-            this.$refs.CheckedMaterial.edit(this.selectedRows,this.modal_type,this.record,this.status)
+            this.$refs.CommonCheck.edit(data,this.modal_type,this.record,'edit')
           }else {
-            this.$refs.CheckedMaterial.show(this.customerId,this.selectedRows,this.modal_type)
+            this.$refs.CommonCheck.show(this.queryParam2,data,this.modal_type)
           }
         }else {
           this.$notification.warning({

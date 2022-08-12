@@ -173,6 +173,9 @@
           const params = {
             templateId: this.templateId
           }
+          res.resource?.forEach(item=> {
+            item.uid = item.id
+          })
           this.$emit('getTaskInfo', res, params)
           this.handleCancel()
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))

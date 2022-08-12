@@ -71,6 +71,19 @@
           </a-col>
         </a-row>
         <a-row :grabbed="48">
+          <position-price
+            v-for="(item, index) in positionList"
+            :key="item.index"
+            ref="PositionPrice"
+            :data-info="item"
+            :number="index+ 1"
+            :length="positionList.length"
+            :show="positionList.length > 1"
+            @add="handleAdd"
+            @delete="handleDelete(index)">
+          </position-price>
+        </a-row>
+        <a-row :grabbed="48">
           <a-col :md="24" :xs="24">
             <a-form-item label="备注" :labelCol="{ xs: { span: 24 }, sm: { span: 3 } }" :wrapperCol="{ xs: { span: 24 }, sm: { span: 21 } }" >
               <a-textarea
@@ -109,8 +122,9 @@ import {
 } from '@/utils/common'
 import labels from '@/utils/labels'
 import moment from 'moment'
+import PositionPrice from './PositionPrice'
 export default {
-
+  components: { PositionPrice },
   data () {
     return {
       labelCol: {
@@ -126,7 +140,8 @@ export default {
       confirmLoading: false,
       id: '',
       form: this.$form.createForm(this),
-      parentId: ''
+      parentId: '',
+      positionList:[]
     }
   },
   methods: {
@@ -134,27 +149,46 @@ export default {
     numberValidator,
     regularCheck2,
     add (record) {
+      this.positionList.push({
+        positionName: '',
+        price: '',
+        index: this.positionList.length,
+        id: '',
+      })
       this.form.resetFields()
       this.modalType = 'add'
       this.id = ''
       this.visible = true
     },
     edit (record) {
-      const { form: { setFieldsValue } } = this
       this.modalType = 'edit'
       this.id = record.id
       this.visible = true
+      this.getDetail(record.id)
+    },
+    getDetail(id){
+      const { form: { setFieldsValue } } = this
       this.confirmLoading = true
       this.$get({
         url: this.$api.basicData.packageInfo.getDetail,
-        params: { id: record.id }
+        params: { id}
       })
         .then(res => {
-            res.endDate= res.endDate ? moment(res.endDate,'YYYY-MM-DD HH:mm:ss') : null
-            res.beginDate= res.beginDate ? moment(res.beginDate,'YYYY-MM-DD HH:mm:ss') : null
+          res.endDate= res.endDate ? moment(res.endDate,'YYYY-MM-DD HH:mm:ss') : null
+          res.beginDate= res.beginDate ? moment(res.beginDate,'YYYY-MM-DD HH:mm:ss') : null
 
           const data = { ...res }
           this.parentId = data.parentId
+          if (data.pavements.length){
+            this.positionList = data.pavements
+          }else {
+            this.positionList.push({
+              position: '',
+              price: '',
+              index: 0,
+              id: '',
+            })
+          }
           for (const key in data) {
             if (filedIsNull(data[key])) {
               delete data[key]
@@ -169,6 +203,19 @@ export default {
           this.confirmLoading = false
         })
     },
+    // 新增材料属性
+    handleAdd() {
+      this.positionList.push({
+        positionName: '',
+        price: '',
+        index: this.positionList.length,
+        id: '',
+      })
+    },
+    // 删除材料属性
+    handleDelete(index) {
+      this.positionList.splice(index, 1)
+    },
     handleSubmit () {
       const { form: { validateFields } } = this
       this.confirmLoading = true
@@ -177,6 +224,23 @@ export default {
           values.endDate=values.endDate.format('YYYY-MM-DD')
           values.beginDate=values.beginDate.format('YYYY-MM-DD')
           values.id = this.id
+          const positionList = []
+          let flag = true
+          for (const index in this.positionList) {
+            this.$refs.PositionPrice[index].form.validateFields((errors01, values01) => {
+              if (!errors01) {
+                values01.id = this.positionList[index].id
+                delete values01.index
+                positionList.push(values01)
+              } else {
+                flag = false
+                return
+              }
+            })
+          }
+          if(flag) {
+            values.pavements = positionList
+          }
           this.$post({
             url: this.$api.basicData.packageInfo.editMaster,
             data: values,
@@ -207,6 +271,7 @@ export default {
       this.parentId = ''
       this.confirmLoading = false
       this.visible = false
+      this.positionList = []
     },
   }
 }

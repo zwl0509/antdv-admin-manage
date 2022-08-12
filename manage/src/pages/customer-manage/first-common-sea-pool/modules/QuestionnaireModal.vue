@@ -9,40 +9,55 @@
     @cancel="handleCancel"
     :mask-closable="false">
     <a-form :form="form" layout="vertical">
-      <!-- isPhoto -->
       <a-col :md="23" :xs="24" v-for="(item,index) in dataList" :key="index">
         <a-form-item :label="`${index + 1 }、` + item.questionTitle" :labelCol="labelCol" :wrapperCol="wrapperCol">
           <div v-if="item.questionSubtitle" class="label-sub">{{ item.questionSubtitle }}</div>
           <template v-if="item.questionType == '1077-10'">
-            <a-input placeholder="请输入答案" :disabled="modal_type == 'detail'" autocomplete="off" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请填写！！`}]}]" :max-length="100"/>
+            <div class="label-sub">
+              <a-input placeholder="请输入答案" :disabled="modal_type == 'detail'" autocomplete="off" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请填写！！`}]}]" :max-length="100"/>
+            </div>
           </template>
           <template v-if="item.questionType == '1077-20'">
-            <a-radio-group :disabled="modal_type == 'detail'" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
-              <a-radio v-for="(info, s_index) in item.surveyOptionsInfoVOS" :value="info.id" :key="s_index" >
-                {{ info.content }}
-              </a-radio>
-            </a-radio-group>
+            <div class="label-ml">
+              <a-input 
+                v-if="checkStatus" 
+                style="margin-bottom: 20px;"
+                placeholder="请输入描述内容:" 
+                :disabled="modal_type == 'detail'" 
+                autocomplete="off"
+                v-model="item.content"
+                :max-length="150"/>
+              <a-radio-group :disabled="modal_type == 'detail'" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
+                <a-radio v-for="(info, s_index) in item.surveyOptionsInfoVOS" :value="info.id" :key="s_index" >
+                  {{ info.content }}
+                </a-radio>
+              </a-radio-group>
+            </div>
           </template>
           <template v-if="item.questionType == '1077-30'">
-            <a-checkbox-group :disabled="modal_type == 'detail'" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
-              <a-checkbox v-for="(info, s_index) in item.surveyOptionsInfoVOS" :key="s_index" :value="info.id">
-                {{ info.content }}
-              </a-checkbox>
-            </a-checkbox-group>
+            <div class="label-ml">
+              <a-checkbox-group :disabled="modal_type == 'detail'" v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
+                <a-checkbox v-for="(info, s_index) in item.surveyOptionsInfoVOS" :key="s_index" :value="info.id">
+                  {{ info.content }}
+                </a-checkbox>
+              </a-checkbox-group>
+            </div>
           </template>
           <template v-if="item.questionType == '1077-40'">
-            <a-select :disabled="modal_type == 'detail'" placeholder="请选择答案" allowClear v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
-              <a-select-option v-for="(info, s_index) in item.surveyOptionsInfoVOS" :key="s_index" :value="info.id">
-                {{ info.content }}
-              </a-select-option>
-            </a-select>
+            <div class="label-ml">
+              <a-select :disabled="modal_type == 'detail'" placeholder="请选择答案" allowClear v-decorator="[item.key,{ rules: [{ required: item.isRequired, message: `第${index+1}问题，请选择！！`}]}]">
+                <a-select-option v-for="(info, s_index) in item.surveyOptionsInfoVOS" :key="s_index" :value="info.id">
+                  {{ info.content }}
+                </a-select-option>
+              </a-select>
+            </div>
           </template>
-          <template>
+          <template v-if="item.isPhoto">
             <a-upload
               multiple
               list-type="picture-card"
               class="avatar-uploader"
-              style="width: 600px; margin-top: 10px;"
+              style="width: 600px; margin: 20px 0 0 40px;"
               :file-list="item.fileList"
               :customRequest="info => customRequest(info, index)"
               @preview="handlePreview"
@@ -55,6 +70,9 @@
                 <div class="ant-upload-text">上传</div>
               </div>
             </a-upload>
+            <a-modal :centered="true" :visible="previewVisible" :footer="null" @cancel="cancelImage">
+              <img alt="example" style="width: 100%" :src="previewImage"/>
+            </a-modal>
           </template>
         </a-form-item>
       </a-col>
@@ -72,7 +90,6 @@
   import labels from '@/utils/labels'
   import { commonFileUpload } from '@/api/common'
   import { defaultErrorMessage, checkErrors } from '@/utils/common'
-import { deepClone } from '@/utils/util'
   export default {
     name: 'QuestionnaireModal',
     data () {
@@ -95,11 +112,13 @@ import { deepClone } from '@/utils/util'
         form: this.$form.createForm(this),
         id:'',
         surveyInfoId: '', // 问卷ID
-        newDataList: []
+        newDataList: [],
+        checkStatus: '',
+        
       }
     },
     methods: {
-      show(record,surveyType) {
+      show(record, surveyType) {
         this.modal_type = 'add'
         this.id = record.id
         this.applicationId = record.applicationId
@@ -107,6 +126,7 @@ import { deepClone } from '@/utils/util'
         this.getSelectQuestion(surveyType)
       },
       detail(data) {
+        console.log(data)
         this.modal_type = 'detail'
         this.visible = true
         this.dataList = data.surveyQuestionVOList
@@ -115,22 +135,91 @@ import { deepClone } from '@/utils/util'
           this.form.setFieldsValue(pick(Object.assign({}, pobject), Object.keys(this.form.fieldsStore.fieldsMeta)))
         })
       },
+      /**
+       *  验收 => 调查问卷
+       * @param record 选中的数据
+       * @param checkStatus 验收状态
+       * @param customerId 客户ID
+       * @param surveyType 问卷模版类型
+       */
+      taskCheck(record, checkStatus, customerId, surveyType) {
+        this.modal_type = 'add'
+        this.id = customerId
+        this.checkStatus = checkStatus
+        this.applicationId = record.id
+        this.visible = true
+        this.getSelectQuestion(surveyType)
+      },
+      /**
+       *  施工验收 => 调查问卷
+       * @param record 关联ID
+       * @param checkStatus 验收状态
+       * @param customerId 客户ID
+       * @param surveyType 问卷模版id String Or Array
+       */
+      acceptanceTask(id, checkStatus, customerId, surveyId) {
+        this.modal_type = 'add'
+        this.id = customerId
+        this.checkStatus = checkStatus
+        this.applicationId = id
+        this.visible = true
+        typeof surveyId == 'string' ? this.getSurveyDetailById(surveyId) : this.getQuestionByIds(surveyId)
+      },
+      getQuestionByIds(surveyId) {
+        this.confirmLoading = true
+        this.$post({
+          url: this.$api.allocation.surveyInfo.getQuestionByIds,
+          data: surveyId ,
+        }).then((res)=>{
+          const list  = res
+          list.forEach((item,index)=>{
+            item.key = `${item.questionType}-${index}`
+            item.fileList = []
+            item.file_info_list = []
+            item.attachIds = []
+          })
+          this.surveyInfoId = list[0]?.surveyInfoId || ''
+          this.dataList = list || []
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })  
+      },
+      // 问卷ID查询
+      getSurveyDetailById(id) {
+        this.confirmLoading = true
+        this.$get({
+          url: this.$api.allocation.surveyInfo.getSurveyDetailById,
+          params: { id },
+        }).then((res)=>{
+          const data = { ...res }
+          this.surveyInfoId = data.id
+          data?.surveyQuestionInfoVOList.forEach((item,index)=>{
+            item.key = `${item.questionType}-${index}`
+            item.fileList = []
+            item.file_info_list = []
+            item.attachIds = []
+          })
+          this.dataList = data?.surveyQuestionInfoVOList || []
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
+      },
       // 选定问题
       getSelectQuestion(surveyType) {
+        this.confirmLoading = true
         this.$get({
           url: this.$api.allocation.surveyInfo.getSurveyDetail,
           params: { surveyType},
         }).then((res)=>{
           const data = { ...res }
           this.surveyInfoId = data.id
-          this.dataList = data.surveyQuestionInfoVOList
-          data.surveyQuestionInfoVOList.forEach((item,index)=>{
+          data?.surveyQuestionInfoVOList.forEach((item,index)=>{
             item.key = `${item.questionType}-${index}`
             item.fileList = []
             item.file_info_list = []
             item.attachIds = []
           })
-        })
+          this.dataList = data?.surveyQuestionInfoVOList || []
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
       },
       handleSubmit() {
         const { form: { validateFields } } = this
@@ -151,7 +240,8 @@ import { deepClone } from '@/utils/util'
                 applicationId: this.applicationId,
                 surveyQuestionDTOList: res
               }
-              return this.save(params)
+              // 有验收状态 => 进任务保存
+              return  this.checkStatus ? this.taskCheckSave(params) : this.save(params) 
             }).catch()
           } else {
             const keys = []
@@ -167,6 +257,19 @@ import { deepClone } from '@/utils/util'
       getData(list){
        const pobject = {}
         list.forEach((item,index)=> {
+          const fileList = []
+          const ids = []
+          item.attachInfos.forEach(info => {
+            fileList.push({
+              uid: fileList.length,
+              name: 'image.png',
+              status: 'done',
+              url: info.path
+            })
+            ids.push(item.id)
+          })
+          item.fileList = fileList
+          item.attachIds = ids
           item.key = `${item.questionType}-${index}`
           if(item.questionType == '1077-10') {
             pobject[`${item.questionType}-${index}`] = item.surveyOptionsVOList[0].content || ''
@@ -208,7 +311,7 @@ import { deepClone } from '@/utils/util'
               plist.push({
                 surveyOptionId: info.id,
                 score: info.score,
-                content: null
+                content: this.checkStatus ? item.content : null
               })
             })
             list.push({
@@ -274,6 +377,29 @@ import { deepClone } from '@/utils/util'
             resolve()
           }
         })
+      },
+      // 验收 => 保存问卷
+      taskCheckSave(params) { 
+        this.confirmLoading = false 
+        const data =  {
+          customerSurveyInfoDTO: params,
+          status: this.checkStatus,
+          customerConstructionTaskId: this.applicationId, // 任务流程ID
+        }
+        this.$post({
+          url: this.$api.allocation.surveyInfo.constructionTaskCheck,
+          data,
+          needResponse: true
+        }).then(res => {
+            this.handleCancel()
+            this.$emit('ok')
+            this.$notification.success({
+              message: labels.SAVE_SUCCESS,
+              description: res.message || ''
+            })
+          })
+          .catch(err => defaultErrorMessage(err, labels.SAVE_FAIL))
+          .finally(() => { this.confirmLoading = false })
       },
       save(data) {
         this.$post({
@@ -365,6 +491,7 @@ import { deepClone } from '@/utils/util'
         this.id = ''
         this.surveyInfoId = ''
         this.applicationId = ''
+        this.checkStatus = ''
         this.form.resetFields()
       }
     }
@@ -395,5 +522,8 @@ import { deepClone } from '@/utils/util'
   margin: 0 0 8px 42px;
   font-size: 16px;
   color: #999999;
+}
+.label-ml {
+  margin-left: 40px;
 }
 </style>

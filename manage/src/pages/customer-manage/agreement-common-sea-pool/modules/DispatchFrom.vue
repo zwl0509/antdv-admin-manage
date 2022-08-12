@@ -116,7 +116,8 @@
             message: labels.SAVE_SUCCESS,
             description: res.message || ''
           })
-        })
+        }).catch(err => defaultErrorMessage(err, labels.SAVE_FAIL))
+          .finally(() => { this.confirmLoading = false })
       },
       // 执行客户流程
       executionFlow() {

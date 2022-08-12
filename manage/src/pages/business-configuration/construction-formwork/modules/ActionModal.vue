@@ -268,7 +268,6 @@
             values.templateDetailEditDTOS = []
             if (values.constructionTaskId?.length) {
               this.constructionList.filter(m => values.constructionTaskId.includes(m.id)).forEach(m => {
-                console.log(m)
                 values.templateDetailEditDTOS.push({
                   sequence: m.sequence,
                   constructionTaskId: m.id,

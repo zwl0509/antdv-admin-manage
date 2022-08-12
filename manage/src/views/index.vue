@@ -21,7 +21,21 @@
             <span class="time">{{ item.applicationDate }}</span>
             <span class="action">
               <span class="btn-detail">
-                <a @click="$refs.ActionModal.show(item)">去办理</a>
+                <template v-if="item.type === '1060-90'">
+                  <a @click="$refs.OverhaulTask.show(item,'edit')">领任务</a>
+                </template>
+                <template v-else-if="item.type === '1060-60' || item.type === '1060-70' || item.type === '1060-100' ">
+                  <a @click="$refs.TaskManage.show(item,'edit')">去办理</a>
+                </template>
+                <template v-else-if="item.type === '1060-50' || item.type === '1060-80' || item.type === '1060-110' || item.type === '1060-120'">
+                  <a @click="toDoView(item)">去办理</a>
+                </template>
+                <template v-else-if="item.auditStatus == '1076-10' || item.auditStatus == '1076-20'">
+                  <a @click="handleCustomerStage(item)">去办理</a>
+                </template>
+                <template v-else>
+                  <a @click="$refs.ActionModal.show(item)">去办理</a>
+                </template>
               </span>
               <a-divider type="vertical" />
               <span class="btn-detail">
@@ -77,20 +91,50 @@
         </div>
       </div>
     </div>
-    <action-modal ref="ActionModal" @ok="getList" :codeType="codeType" @getCodeList="getCodeList"></action-modal>
+    <action-modal ref="ActionModal" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></action-modal>
+    <detail-modal ref="DetailModal" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></detail-modal>
+    <overhaul-task ref="OverhaulTask" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></overhaul-task>
+    <task-manage ref="TaskManage" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></task-manage>
+    <!-- 验收任务 -->
+    <acceptance-task ref="AcceptanceTask" @ok="handleOk" :actionChildAuth="actionChildAuth"></acceptance-task>
+    <!-- 施工计划图 == 完工管理 -->
+    <gantt-modal ref="GanttModal" @ok="handleOk" :actionChildAuth="actionChildAuth"></gantt-modal>
+    <!-- 停复工管理 -->
+    <resume-work-plan ref="ResumeWorkPlan" @ok="handleOk" :actionChildAuth="actionChildAuth"></resume-work-plan>
+    <!-- 移交设计部 => 上传附件  -->
+    <upload-attach ref="UploadAttach" @ok="handleOk" :codeType="codeType" @getCodeList="getCodeList"></upload-attach>
+    <!-- 移交设计部 => 填写问卷 -->
+    <questionnaire-modal ref="QuestionnaireModal" @ok="handleOk"></questionnaire-modal>
   </div>
 </template>
 
 <script>
-  import ActionModal from '@/pages/to-do-manage/modules/ActionModal'
   import labels from '@/utils/labels'
   import { Ellipsis } from '@/components'
   import { defaultErrorMessage } from '@/utils/common'
+  import ActionModal from '@/pages/to-do-manage/modules/ActionModal'
+  import DetailModal from '@/pages/to-do-manage/modules/DetailModal'
+  import OverhaulTask from '@/pages/to-do-manage/modules/OverhaulTask'
+  import TaskManage from '@/pages/to-do-manage/modules/TaskManage'
+  import AcceptanceTask from '@/pages/customer-manage/acceptance-manage/modules/AcceptanceTask.vue'
+  import ResumeWorkPlan from '@/pages/customer-manage/construction-stage/modules/ResumeWorkPlan'
+  import GanttModal from '@/pages/customer-manage/design-phase/modules/GanttModal'
+  import UploadAttach from '@/pages/customer-manage/first-common-sea-pool/modules/UploadAttach.vue'
+  import QuestionnaireModal from '@/pages/customer-manage/first-common-sea-pool/modules/QuestionnaireModal'
+
   export default {
     name: 'Home',
     components:{
       ActionModal,
-      Ellipsis
+      Ellipsis,
+      TaskManage,
+      OverhaulTask,
+      DetailModal,
+      AcceptanceTask,
+      ResumeWorkPlan,
+      GanttModal,
+      UploadAttach,
+      QuestionnaireModal
     },
     data () {
       return {
@@ -114,10 +158,11 @@
           applyType: [],
           statusList: [],
         },
+        actionChildAuth: []
       }
     },
-    created () {
-      this.getList()
+    created() {
+      this.getCodeList()
     },
     methods: {
       getCodeList() {
@@ -168,6 +213,76 @@
           this.isError = true
           this.errorMessage = err && err.message || '获取数据失败'
         })
+      },
+      toDoView(record) {
+        if(record.type == '1060-80'){
+          // 验收任务
+          const arr = [this.getMenuChildAuth('AcceptanceManage'),!record.isView && this.updataStatus(record)]
+          Promise.all(arr).then(res=> {
+            this.$nextTick(()=> {
+              this.$refs.AcceptanceTask.show(record.customerId)
+            })
+          })
+        }else if (record.type == '1060-120'){ 
+          // 停复工管理
+          const arr = [this.getMenuChildAuth('ConstructionStage'),!record.isView && this.updataStatus(record)]
+          const params = { 
+            id: record.customerId,
+            constructionPlanId: record.customerPlanId,
+          }
+          Promise.all(arr).then(res=> {
+            this.$refs.ResumeWorkPlan.show(params)
+          })
+        }else if (record.type == '1060-50' || record.type == '1060-110') {
+          // 查看施工计划
+          const arr = [this.getMenuChildAuth('ConstructionStage'),!record.isView && this.updataStatus(record)]
+          const params = {
+            id :record.customerId
+          }
+           Promise.all(arr).then(res=> {
+            this.$refs.GanttModal.show(params)
+          })
+        }
+      },
+      // 客户阶段处理
+      handleCustomerStage(record) {
+        if (record.auditStatus == '1076-10'){
+          const params = { 
+            id: record.applyRelationId,
+            applicationId: record.applyId,
+          }
+          !record.isView && this.updataStatus(record)
+          this.$refs.UploadAttach.show(params, true)
+        }else if (record.auditStatus == '1076-20') {
+          const params = { 
+            id: record.applyRelationId,
+            applicationId: record.applyId,
+          }
+          let surveyType  = ''
+          if (record.customerType == '1033-40')  surveyType = '1078-10'
+          if (record.customerType == '1033-50')  surveyType = '1078-30'
+          if (record.customerType == '1033-55')  surveyType = '1078-40'
+          !record.isView && this.updataStatus(record)
+          this.$refs.QuestionnaireModal.show(params, surveyType)
+        }
+      },
+      // 更新状态
+      updataStatus(record) {
+        this.$get({
+          url: this.$api.toDealWith.isView,
+          params: { id: record.id },
+          needResponse: true
+        }).then(res => { this.handleOk() })
+      },
+      // 获取菜单权限
+      getMenuChildAuth(key) {
+        this.$store.dispatch('GetIdByKey', key).then(res=> {
+          const arr = []
+          res.forEach(item => {
+            arr.push(item.key.split('.')[1])
+          })
+          this.actionChildAuth = arr
+        }).catch(err=> { defaultErrorMessage(err, '获取页面权限失败')})
       },
       handleClick(){
         this.$router.push('/to-do-manage')
@@ -224,6 +339,9 @@
             this.getList()
           }).catch(err => defaultErrorMessage(err, labels.OPERATE_FAIL))
           .finally(() => { this.loading = false })
+      },
+      handleOk() {
+        this.getList()
       }
     },
     activated() {

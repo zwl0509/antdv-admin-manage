@@ -32,7 +32,39 @@
           </a-col>
           <a-col :md="12" :xs="24">
             <a-form-item label="铺装位置" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-input placeholder="请输入铺装位置" autocomplete="off" v-decorator="['pavingLocation']"/>
+              <a-select
+                placeholder="请选择铺装位置"
+                allowClear
+                v-if="this.addType === '1087-40'"
+                showArrow
+                v-decorator="['pavingLocation']">
+                <a-select-option v-for="(item, index) in pavements" :key="index" :value="item.position">
+                  {{ item.positionName }}
+                </a-select-option>
+              </a-select>
+              <a-select
+                placeholder="请选择铺装位置"
+                allowClear
+                v-else
+                showArrow
+                v-decorator="['pavingLocation']">
+                <a-select-option v-for="(item, index) in positionList" :key="index" :value="item.value">
+                  {{ item.name }}
+                </a-select-option>
+              </a-select>
+            </a-form-item>
+          </a-col>
+          <a-col :md="12" :xs="24">
+            <a-form-item label="颜色" :labelCol="labelCol" :wrapperCol="wrapperCol">
+              <a-select
+                placeholder="请选择颜色"
+                allowClear
+                showArrow
+                v-decorator="['color']">
+                <a-select-option v-for="(item, index) in colorList" :key="index" :value="item.attributeName">
+                  {{ item.attributeName }}
+                </a-select-option>
+              </a-select>
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
@@ -82,11 +114,6 @@
             </a-form-item>
           </a-col>
           <a-col :md="12" :xs="24">
-            <a-form-item label="颜色" :labelCol="labelCol" :wrapperCol="wrapperCol">
-              <a-input placeholder="请输入颜色" autocomplete="off" disabled v-decorator="['colorName']"/>
-            </a-form-item>
-          </a-col>
-          <a-col :md="12" :xs="24">
             <a-form-item label="类别系列" :labelCol="labelCol" :wrapperCol="wrapperCol">
               <a-input placeholder="请输入类别系列" autocomplete="off" disabled v-decorator="['typeSerial']"/>
             </a-form-item>
@@ -132,37 +159,47 @@
           sm: { span: 21 }
         },
         areaList: [],
+        positionList:[],
+        pavements:[],
+        colorList:[],
         id:'',
         customerId:'',
         materialId:'',
+        addType:'',
       }
     },
     methods: {
       show(record) {
+        this.materialId = record.materialId
         this.id= record.id
+        this.addType = record.addType
         this.customerId= record.customerId
         this.visible = true
-        this.getDetail(record.id,record.customerId)
+        this.getDetail(record.id)
         this.getCode()
       },
       getCode() {
         const params = {
-          typeList: ['1086']
+          typeList: ['1086','1100']
         }
         this.$getCodesList(params, res => {
-          this.areaList = res['1086'] || [] // 性别
+          this.areaList = res['1086'] || [] // 所属区域
+          this.positionList = res['1100'] || [] // 铺装位置
         })
       },
-      getDetail(id,customerId){
+      getDetail(id){
         const { form: { setFieldsValue } } = this
         this.confirmLoading = true
         this.$get({
-          url: this.$api.customInfo.chooseMaterialInfo.getList,
-          params: { id,customerId }
+          url: this.$api.customInfo.chooseMaterialInfo.getDetail,
+          params: { id }
         })
           .then(res => {
-            const data = res.rows[0]
+            console.log(res)
+            const data = res
             this.materialId = data.materialId
+            this.pavements = data.pavements
+            this.colorList = data.attributes
             for (const key in data) {
               if (filedIsNull(data[key])) {
                 delete data[key]

@@ -72,16 +72,16 @@
             <a @click="$refs.Review.show([record.id],1)">飞单审核</a>
             <a-divider type="vertical"/>
           </template>
-          <template v-if="record.lost && actionAuth.includes('FlyOrderEvasion.FlyerResurrectionApply')">
-            <template v-if="record.status =='1010-20' && !record.isReborn && record.lost && !record.onApplication">
-              <a @click="$refs.FlyResurrectionApply.show(record,1)">复活申请</a>
-              <a-divider type="vertical"/>
-            </template>
-          </template>
-          <template v-if="record.status =='1010-10' && record.isReborn && record.lost && actionAuth.includes('FlyOrderEvasion.FlyResurrectionReview')">
-            <a @click="$refs.Review.show([record.id],3)">复活审核</a>
-            <a-divider type="vertical"/>
-          </template>
+          <!--<template v-if="record.lost && actionAuth.includes('FlyOrderEvasion.FlyerResurrectionApply')">
+               <template v-if="record.status =='1010-20' && !record.isReborn && record.lost && !record.onApplication">
+                 <a @click="$refs.FlyResurrectionApply.show(record,1)">复活申请</a>
+                 <a-divider type="vertical"/>
+               </template>
+             </template>
+             <template v-if="record.status =='1010-10' && record.isReborn && record.lost && actionAuth.includes('FlyOrderEvasion.FlyResurrectionReview')"
+               <a @click="$refs.Review.show([record.id],3)">复活审核</a>
+               <a-divider type="vertical"/>
+            </template>-->
           <template v-if="actionAuth.includes('FlyOrderEvasion.CustomerTracking')">
             <a @click="$refs.CustomerTracking.shows(record, queryParam.type, actionAuth.includes('FlyOrderEvasion.CustomerTrackingCreate'))">客户跟踪</a>
           </template>
@@ -95,16 +95,6 @@
           </template>
           <template v-if="record.status == '1010-10' && !record.isReborn && !record.lost && actionAuth.includes('FlyOrderEvasion.EvasionReview')">
             <a @click="$refs.Review.show([record.id],2)">逃单审核</a>
-            <a-divider type="vertical"/>
-          </template>
-          <template v-if="record.lost && actionAuth.includes('FlyOrderEvasion.EvasionResurrectionApply')">
-            <template v-if="record.status =='1010-20' && !record.isReborn && record.lost && !record.onApplication">
-              <a @click="$refs.EscapeResurrectionApply.show(record,1)">复活申请</a>
-              <a-divider type="vertical"/>
-            </template>
-          </template>
-          <template v-if="record.status =='1010-10' && record.isReborn && record.lost && actionAuth.includes('FlyOrderEvasion.EvasionResurrectionReview')">
-            <a @click="$refs.Review.show([record.id],3)">复活审核</a>
             <a-divider type="vertical"/>
           </template>
           <template v-if="actionAuth.includes('FlyOrderEvasion.CustomerTracking')">
@@ -235,6 +225,10 @@
             dataIndex: 'reviewerName'
           },
           {
+            title: '飞单次数',
+            dataIndex: 'orderTimes'
+          },
+          {
             title: '操作',
             dataIndex: 'action',
             width: 220,
@@ -293,6 +287,10 @@
           {
             title: '逃单审核人',
             dataIndex: 'reviewerName'
+          },
+          {
+            title: '逃单次数',
+            dataIndex: 'orderTimes'
           },
           {
             title: '门店',

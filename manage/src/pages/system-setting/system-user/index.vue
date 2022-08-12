@@ -25,14 +25,27 @@
             <a-input v-model="queryParam.phoneNumber" style="width: 100%" placeholder="请输入手机号码" autocomplete="off" :max-length="11"/>
           </a-form-item>
         </a-col>
-      </template>
-      <template slot="$searchFold">
         <a-col :md="6" :xs="24">
           <a-form-item label="性别">
             <a-select placeholder="请选择性别" v-model="queryParam.gender">
               <a-select-option value="">全部</a-select-option>
               <a-select-option v-for="(item, index) in genderList" :key="index" :value="item.value">
                 {{ item.name }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+        </a-col>
+        <a-col :md="6" :xs="24">
+          <a-form-item label="职位">
+            <a-select
+              allowClear
+              :getPopupContainer=" triggerNode => { return triggerNode.parentNode }"
+              show-search
+              :filterOption="filterOption"
+              placeholder="请选择职位"
+              v-model="queryParam.positionId">
+              <a-select-option v-for="item in positionList" :value="item.id" :key="item.id">
+                {{ item.positionName }}
               </a-select-option>
             </a-select>
           </a-form-item>
@@ -55,12 +68,8 @@
       </template>
       <template slot="$operate">
         <a-button type="primary" icon="plus" @click="$refs.createModal.add()" v-if="actionAuth.includes('User.Create')">新建</a-button>
-      </template>
-      <template slot="$operate">
-        <a-button type="primary" @click="handleAuth('','2',false,selectedRowKeys)" v-if="selectedRowKeys.length&&actionAuth.includes('User.Authority')">app权限</a-button>
-      </template>
-      <template slot="$operate">
-        <a-button type="primary" @click="handleAuth('','1',false,selectedRowKeys)" v-if="selectedRowKeys.length&&actionAuth.includes('User.Authority')">后台权限</a-button>
+        <a-button type="primary" @click="handleAuth('','2',false,selectedRowKeys)" v-if="selectedRowKeys.length && actionAuth.includes('User.Authority')">app权限</a-button>
+        <a-button type="primary" @click="handleAuth('','1',false,selectedRowKeys)" v-if="selectedRowKeys.length && actionAuth.includes('User.Authority')">后台权限</a-button>
       </template>
       <span slot="isDefault" slot-scope="bool, record">
         <template>
@@ -195,11 +204,13 @@ export default {
         }
       ],
       genderList: [],
-      actionAuth: []
+      actionAuth: [],
+      positionList:[]
     }
   },
   created () {
     this.initPageData()
+    this.getPosition()
   },
   methods: {
       onSelectChange(selectedRowKeys, selectedRows) {
@@ -213,6 +224,26 @@ export default {
       }
       delete this.queryParam.date
       return this.queryParam
+    },
+    filterOption(input, option) {
+      return (
+        option.componentOptions.children[0].text.toLowerCase().indexOf(input.toLowerCase()) >= 0
+      )
+    },
+    // 获取职位
+    getPosition() {
+      const params= {
+        currentPage: 0,
+        pageSize : 0,
+        isLocked : true
+      }
+      this.$get({
+        url: this.$api.system.position.getListPage,
+        params,
+      }).then((res)=>{
+        const data = res.rows
+        this.positionList = data
+      })
     },
     initPageData () {
       // 按钮级权限获取
@@ -228,7 +259,7 @@ export default {
       })
     },
     handleAuth (id,index,batch,targetIds) {
-      this.$refs.authModal.show(id,index,batch,targetIds)
+      this.$refs.authModal.show(id, index, batch, targetIds)
     },
     handleEdit (record) {
       this.$refs.createModal.edit(record)

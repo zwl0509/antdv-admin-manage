@@ -61,6 +61,14 @@
                 v-decorator="['sequence', {rules: [{ validator: (r, v, fun) => regularCheck2(r, v,fun, 'int', 9, '请输入1到9位的数字') }]}]"/>
             </a-form-item>
           </a-col>
+          <a-col :md="24" :xs="24">
+            <a-form-item label="负责人" :labelCol="labelCol1" :wrapperCol="wrapperCol1">
+              <a-tooltip v-if="personInChargeId" :title="personInChargeName">
+                <div v-if="personInChargeId" class="dispatch-user">{{ personInChargeName }}</div>
+              </a-tooltip>
+              <a-button type="primary" @click="responsiblePerson">选择负责人</a-button>
+            </a-form-item>
+          </a-col>
           <a-col :md="12" :xs="24">
             <a-form-item label="是否独立机构" :labelCol="labelCol" :wrapperCol="wrapperCol">
               <a-switch un-checked-children="否" checked-children="是" v-decorator="['isSeparate', { initialValue: false, valuePropName: 'checked' }]"></a-switch>
@@ -82,7 +90,7 @@
             </a-form-item>
           </a-col>
           <a-col :md="24" :xs="24">
-            <a-form-item label="备注" :labelCol="{ xs: { span: 24 }, sm: { span: 4 } }" :wrapperCol="{ xs: { span: 24 }, sm: { span: 20 } }">
+            <a-form-item label="备注" :labelCol="labelCol1" :wrapperCol="wrapperCol1">
               <a-textarea
                 auto-size
                 :max-length="500"
@@ -94,22 +102,18 @@
         </a-row>
       </a-form>
     </a-spin>
+    <!-- 新增负责人 -->
+    <responsible-person ref="ResponsiblePerson" @ok="handleOk"></responsible-person>
   </a-modal>
 </template>
 
 <script>
   import pick from 'lodash.pick'
-  import {
-    checkErrors,
-    defaultErrorMessage,
-    filedIsNull,
-    maxLenValidator,
-    numberValidator,
-    regularCheck2
-  } from '@/utils/common'
+  import { checkErrors, defaultErrorMessage, filedIsNull, maxLenValidator, numberValidator, regularCheck2 } from '@/utils/common'
   import labels from '@/utils/labels'
-
+  import ResponsiblePerson from './ResponsiblePerson'
   export default {
+    components: { ResponsiblePerson },
     data () {
       return {
         labelCol: {
@@ -120,6 +124,14 @@
           xs: { span: 24 },
           sm: { span: 16 }
         },
+        labelCol1: {
+          xs: { span: 24 },
+          sm: { span: 4 }
+        },
+        wrapperCol1: {
+          xs: { span: 24 },
+          sm: { span: 20 }
+        },
         visible: false,
         modalType: 'add',
         confirmLoading: false,
@@ -129,6 +141,8 @@
         replaceFields: { title: 'name', key: 'code', value: 'code' },
         errorMessage: '',
         isError: false,
+        personInChargeId: '',
+        personInChargeName: ''
       }
     },
     methods: {
@@ -174,6 +188,8 @@
             if (data.parentCode === '0010001') {
               data.parentCode = ''
             }
+            this.personInChargeId = data.personInChargeId
+            this.personInChargeName = data.personInChargeName
             for (const key in data) {
               if (filedIsNull(data[key])) {
                 delete data[key]
@@ -202,12 +218,21 @@
           }
         }
       },
+      responsiblePerson(){
+        this.$refs.ResponsiblePerson.radio()
+      },
+      handleOk(data) {
+        this.personInChargeId = data.personInChargeId
+        this.personInChargeName = data.personInChargeName
+      },
       handleSubmit () {
         const { form: { validateFields } } = this
         this.confirmLoading = true
         validateFields((errors, values) => {
           if (!errors) {
             values.id = this.id
+            values.personInChargeId = this.personInChargeId
+            values.personInChargeName = this.personInChargeName
             // if (values.parentId) {
             //   values.parentCode = this.deepArr(this.parentList, values.parentId)
             // }
@@ -247,7 +272,26 @@
         this.form.resetFields()
         this.confirmLoading = false
         this.visible = false
+        this.personInChargeId = ''
+        this.personInChargeName = ''
       }
     }
   }
 </script>
+<style scoped lang="scss">
+  .dispatch-user {
+    display: inline-block;
+    background-color: #f5f5f5;
+    border: 1px solid #e8e8e8;
+    border-radius: 5px;
+    padding: 0 10px;
+    margin-right: 10px;
+    max-width: 245px;
+    height: 32px;
+    line-height: 30px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    vertical-align:middle;
+  }
+</style>

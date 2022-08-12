@@ -124,8 +124,10 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
+      title: '小区',
+      dataIndex: 'areaNamePath',
+      width: 160,
+      scopedSlots: { customRender: 'ellipsis'}
     },
     {
       title: '客户类型',

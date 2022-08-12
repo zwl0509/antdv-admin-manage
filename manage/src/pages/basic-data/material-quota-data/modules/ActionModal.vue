@@ -533,6 +533,19 @@
           </a-col>
         </a-row>
         <a-row :grabbed="48">
+          <material-property
+            v-for="(item, index) in materialList"
+            :key="item.index"
+            ref="MaterialProperty"
+            :data-info="item"
+            :number="index+ 1"
+            :length="materialList.length"
+            :show="materialList.length > 1"
+            @add="handleAdd"
+            @delete="handleDelete(index)">
+          </material-property>
+        </a-row>
+        <a-row :grabbed="48">
           <a-col :md="24" :xs="24">
             <a-form-item label="备注" :labelCol="{ xs: { span: 24 }, sm: { span: 2 }}" :wrapperCol="{ xs: { span: 24 }, sm: { span: 22 }}" >
               <a-textarea
@@ -555,9 +568,11 @@
   import { defaultErrorMessage, checkErrors, filedIsNull, maxLenValidator,regularCheck,regularCheck2 } from '@/utils/common'
   import labels from '@/utils/labels'
   import SelectSupply from './SelectSupply'
+  import MaterialProperty from '@/pages/basic-data/material-quota-data/modules/MaterialProperty'
 
   export default {
-    components: { 
+    components: {
+      MaterialProperty,
       SelectSupply 
     },
     data () {
@@ -590,6 +605,7 @@
         workerTypeList: [],
         stockList: [] , // 仓库列表
         supplyId: '', // 供应商ID
+        materialList:[],
       }
     },
     created() {
@@ -614,6 +630,12 @@
     methods: {
       maxLenValidator,regularCheck,regularCheck2,
       add (row) {
+        this.materialList.push({
+          attributeName: '',
+          attributeType: '1085-10',
+          index: this.materialList.length,
+          id: '',
+        })
         this.modalType = 'add'
         this.id = ''
         this.materialClassId = row.menuId
@@ -640,6 +662,16 @@
             const data = { ...res }
             this.supplyId = data.supplyId
             this.materialClassId = data.materialClassId
+            if (data.colorInfos.length){
+              this.materialList = data.colorInfos
+            }else {
+              this.materialList.push({
+                attributeName: '',
+                attributeType: '1085-10',
+                index: 0,
+                id: '',
+              })
+            }
             for (const key in data) {
               if (filedIsNull(data[key])) {
                 delete data[key]
@@ -668,6 +700,19 @@
           this.stockList = res
         })
       },
+      // 新增材料属性
+      handleAdd() {
+        this.materialList.push({
+          attributeName: '',
+          attributeType: '1085-10',
+          index: this.materialList.length,
+          id: '',
+        })
+      },
+      // 删除材料属性
+      handleDelete(index) {
+        this.materialList.splice(index, 1)
+      },
       selectSupply() {
         this.$refs.SelectSupply.show()
       },
@@ -689,6 +734,25 @@
             values.id = this.id
             values.materialClassId = this.materialClassId
             values.supplyId = this.supplyId
+            const materialList = []
+            let flag = true
+            for (const index in this.materialList) {
+              this.$refs.MaterialProperty[index].form.validateFields((errors01, values01) => {
+                if (!errors01) {
+                  values01.id = this.materialList[index].id
+                  values01.attributeType ='1085-10'
+                  delete values01.index
+                  materialList.push(values01)
+                } else {
+                  flag = false
+                  return
+                }
+              })
+            }
+            if(flag) {
+              values.attributeDTOS = materialList
+            }
+            console.log(values)
             this.$post({
               url: this.$api.basicData.materialInfo.edit,
               data: values,
@@ -718,6 +782,7 @@
         this.form.resetFields()
         this.confirmLoading = false
         this.visible = false
+        this.materialList = []
       },
     }
   }
@@ -730,5 +795,43 @@
     padding: 0;
     background: red !important;
     color: #585A62;
+  }
+  ::v-deep .question{
+    margin-right: 20px;
+  }
+  ::v-deep .icon{
+    width: 80px;
+
+  }
+  ::v-deep .dynamic-add-button {
+    cursor: pointer;
+    position: relative;
+    top: 4px;
+    font-size: 24px;
+    color: #b80201;
+    transition: all 0.3s;
+  }
+  .dynamic-add-button:hover {
+    color: #b80201;
+  }
+  .dynamic-add-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
+  }
+  ::v-deep .dynamic-delete-button {
+    cursor: pointer;
+    position: relative;
+    top: 4px;
+    font-size: 24px;
+    color: #999;
+    transition: all 0.3s;
+    margin-right: 20px;
+  }
+  .dynamic-delete-button:hover {
+    color: #777;
+  }
+  .dynamic-delete-button[disabled] {
+    cursor: not-allowed;
+    opacity: 0.5;
   }
 </style>

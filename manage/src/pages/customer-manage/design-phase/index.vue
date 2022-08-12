@@ -85,15 +85,7 @@
         <template v-if="actionAuth.includes('DesignPhase.Evasion')">
           <a @click="$refs.EvasionApply.show([record.id],2)">逃单申请</a>
         </template>
-        <br/>
-        <template v-if="record.haveConstruction && actionAuth.includes('DesignPhase.ConstructionPlan')">
-          <a @click="$refs.GanttModal.show(record)">查看施工计划</a>
-          <a-divider v-if="record.currentWorkFlowInfos.length" type="vertical"/>
-        </template>
-        <template v-if="!record.haveConstruction && actionAuth.includes('DesignPhase.ConstructionPlan')">
-          <a @click="$refs.ConstructionPlan.show(record)">生成施工计划</a>
-          <a-divider v-if="record.currentWorkFlowInfos.length" type="vertical"/>
-        </template>
+        <br>
         <template v-if="record.currentWorkFlowInfos.length && isFlowInfos(record)">
           <span v-for="(item,index) in record.currentWorkFlowInfos" :key="index">
             <a @click="trackingProcess(record,item)">{{ item.name }}</a>
@@ -119,6 +111,8 @@
     <construction-plan ref="ConstructionPlan" @ok="handleOk"></construction-plan>
     <!-- 施工计划图 -->
     <gantt-modal ref="GanttModal" @ok="handleOk"></gantt-modal>
+    <!-- 停复工列表 -->
+    <resume-work-plan ref="ResumeWorkPlan" @ok="handleOk"></resume-work-plan>
   </div>
 </template>
 
@@ -139,8 +133,10 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
+      title: '小区',
+      dataIndex: 'areaNamePath',
+      width: 160,
+      scopedSlots: { customRender: 'ellipsis'}
     },
     {
       title: '客户类型',
@@ -213,6 +209,7 @@
   import SignContractFrom from '@/pages/customer-manage/design-phase/modules/SignContractFrom'
   import ConstructionPlan from '@/pages/customer-manage/design-phase/modules/ConstructionPlan'
   import GanttModal from '@/pages/customer-manage/design-phase/modules/GanttModal'
+  import ResumeWorkPlan from '@/pages/customer-manage/construction-stage/modules/ResumeWorkPlan'
   export default {
     name: 'TableList',
     components: {
@@ -226,7 +223,8 @@
       DesignContract,
       UploadPic,
       SignContractFrom,
-      GanttModal
+      GanttModal,
+      ResumeWorkPlan
     },
     data () {
       return {

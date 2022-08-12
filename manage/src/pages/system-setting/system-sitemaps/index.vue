@@ -26,7 +26,7 @@
             :request-url="requestUrl"
             :query-params="searchParams"
             :bodyStyle="{ padding: '0' }"
-          >
+            :scroll="{ x: 1500 }">
             <template slot="$search">
               <a-col :md="8" :sm="24">
                 <a-form-item label="名称">
@@ -113,7 +113,8 @@
           },
           {
             title: '键值',
-            dataIndex: 'key'
+            dataIndex: 'key',
+            width: 350,
           },
           {
             title: '名称',
@@ -135,6 +136,7 @@
           {
             title: '操作',
             dataIndex: 'action',
+            fixed: 'right',
             width: '150px',
             scopedSlots: { customRender: 'action' }
           }
@@ -296,7 +298,7 @@
         this.getMenuList()
       },
       handleSaveOk () {
-        this.$refs.listPage.refresh(true)
+        this.$refs.listPage.refresh()
       },
       resetSearchForm () {
         this.queryParam = {

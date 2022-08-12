@@ -19,8 +19,8 @@
         <a-collapse-panel key="2" header="投诉信息" forceRender>
           <complaint-info ref="ComplaintInfo" :type="modal_type" @getCustomerId="getCustomerId"></complaint-info>
         </a-collapse-panel>
-        <a-collapse-panel key="3" header="工单列表" forceRender>
-          <work-order-list ref="WorkOrderList" :type="modal_type"></work-order-list>
+        <a-collapse-panel key="3" header="工单列表" forceRender @click.native="getCustomer">
+          <work-order-list ref="WorkOrderList" :type="modal_type" @getDetail="getDetail"></work-order-list>
         </a-collapse-panel>
       </a-collapse>
     </a-spin>
@@ -35,17 +35,17 @@
 <script>
   import labels from '@/utils/labels'
   import { checkErrors, defaultErrorMessage, filedIsNull } from '@/utils/common'
-  import ComplaintInfo from './ComplaintInfo'
-  import WorkOrderList from '@/pages/customer-service-manage/complaint-record/modules/WorkOrderList'
+  import WorkOrderList from './WorkOrderList'
   import { Ellipsis } from '@/components'
   import { defaultTableColumns } from '@/components/ListPage/_utils'
   import moment from 'moment'
-  import HistoryTable from '@/pages/customer-service-manage/complaint-record/modules/HistoryTable'
+  import HistoryTable from './HistoryTable'
   import pick from 'lodash.pick'
+  import ComplaintInfo from './ComplaintInfo'
   export default {
     components:{
-      HistoryTable,
       ComplaintInfo,
+      HistoryTable,
       WorkOrderList,
       Ellipsis
       // BaseInfo,
@@ -86,26 +86,40 @@
         },
         stateList:[
           {
-            name:'历史投诉信息',key: 0
+            name:'历史投诉记录',key: 0
           },
           {
-            name:'历史报修信息',key: 1
+            name:'历史报修记录',key: 1
           },
           {
-            name:'历史回访信息',key: 2
-          }
+            name:'历史回访记录',key: 2
+          },
         ],
         value: 0,
         customerId:'',
         status:'',
+        employeeRole:'',
       }
     },
     methods: {
       add(status) {
         this.status = status
         this.modal_type = 'add'
-        this.customerId=''
         this.visible = true
+        this.$emit('getCodeList')
+        this.$nextTick(() => {
+          this.$refs.ComplaintInfo.getCodeList(this.codeType)
+          this.$refs.WorkOrderList.getCodeList(this.codeType)
+        })
+      },
+      edit(record , type ,status) {
+        this.employeeRole = record.employeeRole
+        this.id = record.id
+        this.status = status
+        this.customerId = record.customerId
+        this.modal_type = type
+        this.visible = true
+        this.getDetail(this.id,this.employeeRole,record.csComplaintDispatchIds)
         this.$emit('getCodeList')
         this.$nextTick(() => {
           this.$refs.ComplaintInfo.getCodeList(this.codeType)
@@ -113,19 +127,14 @@
         })
         this.getHistory()
       },
-      edit(record , type ,status) {
-        this.id = record.id
-        this.status = status
-        this.customerId = record.customerId
-        this.modal_type = type
-        this.visible = true
-        this.getDetail(this.id)
-        this.$emit('getCodeList')
-        this.$nextTick(() => {
-          this.$refs.ComplaintInfo.getCodeList(this.codeType)
-          this.$refs.WorkOrderList.getCodeList(this.codeType)
-        })
-
+      getHistory(){
+        this.$get({
+          url: this.$api.customerServiceInfo.getListPage,
+          params: { customerId:this.customerId , type: '1071-20' }
+        }).then(() =>{
+          this.$refs.HistoryTable.show(this.customerId,this.value)
+        }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
+          .finally(() => { this.confirmLoading = false })
       },
       changeTabs(value) {
         const id = this.customerId
@@ -136,33 +145,32 @@
       getCustomerId(data){
         this.customerId = data.customerId
       },
-      getHistory(){
+      getCustomer(){
         this.$get({
           url: this.$api.customerServiceInfo.getListPage,
-          params: { customerId:this.customerId , type: '1071-10' }
+          params: { customerId:this.customerId , type: '1071-20' }
         }).then(() =>{
-          this.$refs.HistoryTable.show(this.customerId,this.value)
+          this.$refs.WorkOrderList.show(this.customerId,this.id)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
           .finally(() => { this.confirmLoading = false })
       },
       // 获取详情
-      getDetail(id) {
+      getDetail(id,employeeRole,csComplaintDispatchIds) {
         this.confirmLoading = true
         this.$get({
           url: this.$api.customerServiceInfo.getDetail,
-          params: { id }
+          params: { id,employeeRole }
         }).then((res) =>{
           const data = { ...res }
           const recordType = []
-          //从data里面的recordTypes做for循环，拿到type的值并赋值给recordType
-          data.recordTypes.forEach(item =>{
+          data.recordTypes.forEach(item=>{
             recordType.push(item.type)
           })
-          //令recordType成为data.recordType并且传到ComplaintInfo里面
           data.recordType = recordType
           this.customerId = data.customerId
+
           this.$refs.ComplaintInfo.setData(data)
-          this.$refs.WorkOrderList.setData(data.dispatchInfos)
+          this.$refs.WorkOrderList.setData(data.dispatchInfos,data.id,csComplaintDispatchIds)
           this.$refs.HistoryTable.show(this.customerId,this.value)
         }).catch(err => defaultErrorMessage(err, labels.GET_DATA_FAIL))
           .finally(() => { this.confirmLoading = false })
@@ -173,12 +181,14 @@
         }
         this.$refs.ComplaintInfo.getData().then((res)=>{
           values.type = '1071-10'
+          values.employeeRole = this.employeeRole
           values.recordSource = res.recordSource
           values.recordTypes = res.recordTypes
           values.customerId = res.customerId
           values.recordTime = res.recordTime
           values.remark = res.remark
           values.dispatchInfos = this.$refs.WorkOrderList.getData()
+          values.id = this.id
           return this.save(values)
         }).catch(err => defaultErrorMessage(err, labels.SAVE_FAIL))
       },
@@ -203,8 +213,6 @@
         this.activeKey = ['1']
         this.isError = false
         this.id = ''
-        this.value = 0
-        this.customerId = ''
         this.$refs.WorkOrderList.clearInput()
         this.$refs.ComplaintInfo.clearInput()
         this.$refs.HistoryTable.clearInput()

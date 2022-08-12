@@ -56,10 +56,9 @@
       <template slot="$operate">
         <a-button type="primary" icon="plus" v-if="actionAuth.includes('FirstCommon.Create')" @click="$refs.createModal.add(queryParam.type)">新建</a-button>
         <a-button type="primary" icon="search" v-if="actionAuth.includes('FirstCommon.Gain')" @click="getCustomer">捞取客户</a-button>
-        <!-- <a-button v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchControl')" type="primary" icon="edit" @click="$refs.BatchAllocation.show(selectedRowKeys,queryParam.type,3)">批量指派</a-button> -->
         <a-button v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchFlyerOrder')" type="primary" icon="edit" @click="$refs.FlightOrderApply.shows(selectedRowKeys,1)">批量飞单</a-button>
-        <a-button v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchFutureHouse')" type="primary" icon="edit" @click="$refs.FutureHouseApply.show(selectedRowKeys,'1056-20',2)">批量期房</a-button>
-        <a-button v-if="actionAuth.includes('FirstCommon.BatchRetainApply') && selectedRowKeys.length" type="primary" icon="edit" @click="batchRetain()">批量保留</a-button>
+        <a-button v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchFutureHouse')" type="primary" icon="edit" @click="handleBatchAction('10')">批量期房</a-button>
+        <a-button v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchRetainApply')" type="primary" icon="edit" @click="handleBatchAction('20')">批量保留</a-button>
         <a-popconfirm v-if="selectedRowKeys.length && actionAuth.includes('FirstCommon.BatchEliminate')" title="是否要批量剔除选中数据？" @confirm="handleSub(selectedRowKeys)">
           <a-button type="primary" icon="delete">批量剔除</a-button>
         </a-popconfirm>
@@ -95,9 +94,15 @@
             <a @click="$refs.HandoverDesign.show([record.id])">移交设计部</a>
             <a-divider type="vertical"/>
           </template>
-          <template v-if="record.auditStatus == '1076-20' && actionAuth.includes('FirstCommon.Questionnaire')">
-            <a @click="$refs.QuestionnaireModal.show(record,'1078-10')">填写问卷</a>
-            <a-divider type="vertical"/>
+          <template>
+            <template v-if="record.auditStatus == '1076-20' && actionAuth.includes('FirstCommon.Questionnaire')">
+              <a @click="$refs.QuestionnaireModal.show(record,'1078-10')">填写问卷</a>
+              <a-divider type="vertical"/>
+            </template>
+            <template v-if="record.auditStatus == '1076-10' ">
+              <a @click="$refs.UploadAttach.show(record)">上传图片</a>
+              <a-divider type="vertical"/>
+            </template>
           </template>
           <template v-if="actionAuth.includes('FirstCommon.CustomerTracking')">
             <a @click="$refs.CustomerTracking.show(record, queryParam.type, actionAuth.includes('FirstCommon.CreateCustomerTracking'))">客户跟踪</a>
@@ -161,11 +166,14 @@
     <questionnaire-modal ref="QuestionnaireModal" @ok="handleOk"></questionnaire-modal>
     <!-- 导入部门信息 -->
     <import-department-info ref="ImportDepartmentInfo" @ok="handleOk"></import-department-info>
+    <!-- 移交设计部 => 上传附件 -->
+    <upload-attach ref="UploadAttach" @ok="handleOk"></upload-attach>
+    <!-- 批量操作 =>(期房，保留) -->
+    <bacth-action ref="BacthAction" @ok="handleOk"></bacth-action>
   </div>
 </template>
 
 <script>
-  
   const columnX = [
     {
       title: '序号',
@@ -182,8 +190,10 @@
       dataIndex: 'genderName'
     },
     {
-      title: '手机号',
-      dataIndex: 'mobileNumber'
+      title: '小区',
+      dataIndex: 'areaNamePath',
+      width: 160,
+      scopedSlots: { customRender: 'ellipsis'}
     },
     {
       title: '客户类型',
@@ -270,6 +280,8 @@
   import CustomerNewLog from '@/pages/customer-manage/primitive-common-sea-pool/modules/CustomerNewLog'
   import QuestionnaireModal from './modules/QuestionnaireModal'
   import ImportDepartmentInfo from '@/pages/customer-manage/primitive-common-sea-pool/modules/ImportDepartmentInfo'
+  import UploadAttach from '@/pages/customer-manage/first-common-sea-pool/modules/UploadAttach.vue'
+  import BacthAction from '@/pages/customer-manage/first-common-sea-pool/modules/BacthAction'
   export default {
     name: 'TableList',
     components: {
@@ -290,7 +302,9 @@
       AboutFirstSee,
       GetCustomer,
       HandoverDesign,
-      QuestionnaireModal
+      QuestionnaireModal,
+      UploadAttach,
+      BacthAction
     },
     data () {
       return {
@@ -435,9 +449,16 @@
           this.codeType.focusOnType = res['1031'] || []  // 客户重点关注
           this.codeType.trackType = res['1037'] || []  // 跟踪类型
           this.codeType.recordType = res['1038'] || []  // 记录类型
-          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
           this.codeType.importType = res['1066'] || [] //导入日志类型
+          this.codeType.infoSourceType = res['1044'] || []  // 信息来源
+          const filterList = ['1044-01','1044-04','1044-05','1044-06']
+          const newList =  this.codeType.infoSourceType .filter(item=> { return !filterList.includes(item.value) })
+          this.codeType.infoSourceType = newList
         })
+      },
+      // 批量操作 10 => 期房, 20 => 保留
+      handleBatchAction(type) {
+        this.$refs.BacthAction.show(type, this.selectedRows)
       },
       handleOk () {
         this.selectedRowKeys = []
@@ -449,13 +470,6 @@
           type: '1033-40',
           allData: false,
         }
-      },
-      batchRetain(){
-        const batchIds = []
-        this.selectedRows.forEach(item =>{
-          batchIds.push(item.bindId)
-        })
-        this.$refs.FutureHouseApply.show(batchIds,'1056-10',1)
       },
       // 上传材料数据
       uploadData () {
@@ -470,7 +484,7 @@
       },
       // 下载模版
       downloadTemplate(){
-        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template.xlsx'
+        const url = process.env.VUE_APP_TEMPLATE_BASE_URL + 'customer-template-first.xlsx'
         const link = document.createElement('a')
         link.style.display = 'none'
         link.href = url

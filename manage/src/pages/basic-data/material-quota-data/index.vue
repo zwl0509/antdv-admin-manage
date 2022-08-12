@@ -173,9 +173,7 @@
         menuId: null,
         menuTitle: null,
         // 查询参数
-        queryParam: {
-          materialClassId: null
-        },
+        queryParam: {},
         isCheck: false,
         requestUrl: this.$api.basicData.materialInfo.getListPage,
         // 表头
@@ -394,7 +392,7 @@
         } else {
           this.menuKey = ''
           this.menuTitle = ''
-          this.queryParam.materialClassId = null
+          this.queryParam.materialClassId = ''
         }
         this.refresh()
       },
